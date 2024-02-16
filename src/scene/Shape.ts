@@ -1,21 +1,21 @@
-import type { Drawable, Options } from 'roughjs/bin/core'
-import type { RoughGenerator } from 'roughjs/bin/generator'
-import { getDiamondPoints, getArrowheadPoints } from '../element'
-import type { ElementShapes } from './types'
-import type {
-  ExcalidrawElement,
-  NonDeletedExcalidrawElement,
-  ExcalidrawSelectionElement,
-  ExcalidrawLinearElement,
-  Arrowhead
-} from '../element/types'
-import { isPathALoop, getCornerRadius } from '../math'
-import { isTransparent, assertNever } from '../utils'
-import { simplify } from 'points-on-curve'
 import { ROUGHNESS } from '../constants'
+import { getArrowheadPoints, getDiamondPoints } from '../element'
 import { isEmbeddableElement, isLinearElement } from '../element/typeChecks'
+import type {
+  Arrowhead,
+  ExcalidrawElement,
+  ExcalidrawLinearElement,
+  ExcalidrawSelectionElement,
+  NonDeletedExcalidrawElement
+} from '../element/types'
+import { simplify } from '../externalLibrary/points-on-curve'
+import type { Drawable, Options } from '../externalLibrary/roughjs/core'
+import type { RoughGenerator } from '../externalLibrary/roughjs/generator'
+import { getCornerRadius, isPathALoop } from '../math'
+import { EmbedsValidationStatus } from '../types'
+import { assertNever, isTransparent } from '../utils'
 import { canChangeRoundness } from './comparisons'
-import { EmbedsValidationStatus, Point } from '../types'
+import type { ElementShapes } from './types'
 
 const getDashArrayDashed = (strokeWidth: number) => [8, 8 + strokeWidth]
 
@@ -373,7 +373,7 @@ export const _generateElementShape = (
 
       if (isPathALoop(element.points)) {
         // generate rough polygon to fill freedraw shape
-        const simplifiedPoints = simplify(element.points as Point[], 0.75)
+        const simplifiedPoints = simplify(element.points, 0.75)
         shape = generator.curve(simplifiedPoints as [number, number][], {
           ...generateRoughOptions(element),
           stroke: 'none'

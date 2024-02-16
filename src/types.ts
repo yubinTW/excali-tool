@@ -1,30 +1,30 @@
-import {
-  PointerType,
-  ExcalidrawLinearElement,
-  NonDeletedExcalidrawElement,
-  NonDeleted,
-  TextAlign,
-  ExcalidrawElement,
-  GroupId,
-  ExcalidrawBindableElement,
-  Arrowhead,
-  ChartType,
-  FontFamilyValues,
-  FileId,
-  ExcalidrawImageElement,
-  Theme,
-  StrokeRoundness,
-  ExcalidrawMagicFrameElement,
-  ExcalidrawFrameLikeElement,
-  ExcalidrawElementType
-} from './element/types'
-import { Point as RoughPoint } from 'roughjs/bin/geometry'
-import { LinearElementEditor } from './element/linearElementEditor'
-import { SuggestedBinding } from './element/binding'
 import { Spreadsheet } from './charts'
 import type { IMAGE_MIME_TYPES, MIME_TYPES } from './constants'
+import { SuggestedBinding } from './element/binding'
+import { LinearElementEditor } from './element/linearElementEditor'
+import {
+  Arrowhead,
+  ChartType,
+  ExcalidrawBindableElement,
+  ExcalidrawElement,
+  ExcalidrawElementType,
+  ExcalidrawFrameLikeElement,
+  ExcalidrawImageElement,
+  ExcalidrawLinearElement,
+  ExcalidrawMagicFrameElement,
+  FileId,
+  FontFamilyValues,
+  GroupId,
+  NonDeleted,
+  NonDeletedExcalidrawElement,
+  PointerType,
+  StrokeRoundness,
+  TextAlign,
+  Theme
+} from './element/types'
+import { Point as RoughPoint } from './externalLibrary/roughjs/geometry'
 import { SnapLine } from './snapping'
-import { Merge, ValueOf } from './utility-types'
+import { ValueOf } from './utility-types'
 
 export type Point = Readonly<RoughPoint>
 

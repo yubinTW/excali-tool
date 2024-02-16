@@ -1,31 +1,4 @@
 import {
-  ExcalidrawElement,
-  ExcalidrawImageElement,
-  ExcalidrawTextElement,
-  ExcalidrawLinearElement,
-  ExcalidrawGenericElement,
-  NonDeleted,
-  TextAlign,
-  GroupId,
-  VerticalAlign,
-  Arrowhead,
-  ExcalidrawFreeDrawElement,
-  FontFamilyValues,
-  ExcalidrawTextContainer,
-  ExcalidrawFrameElement,
-  ExcalidrawEmbeddableElement,
-  ExcalidrawMagicFrameElement
-} from './types'
-import { arrayToMap, getFontString, getUpdatedTimestamp } from '../utils'
-import { randomInteger, randomId } from '../random'
-import { bumpVersion, newElementWith } from './mutateElement'
-import { getNewGroupIdsForDuplication } from '../groups'
-import { AppState } from '../types'
-import { getElementAbsoluteCoords } from '.'
-import { adjustXYWithRotation } from '../math'
-import { getResizedElementAbsoluteCoords } from './bounds'
-import { measureText, normalizeText, wrapText, getBoundTextMaxWidth, getDefaultLineHeight } from './textElement'
-import {
   DEFAULT_ELEMENT_PROPS,
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
@@ -33,7 +6,34 @@ import {
   DEFAULT_VERTICAL_ALIGN,
   VERTICAL_ALIGN
 } from '../constants'
+import { getNewGroupIdsForDuplication } from '../groups'
+import { adjustXYWithRotation } from '../math'
+import { randomId, randomInteger } from '../random'
+import { AppState } from '../types'
 import { MarkOptional, Merge, Mutable } from '../utility-types'
+import { arrayToMap, getFontString, getUpdatedTimestamp } from '../utils'
+import { getElementAbsoluteCoords } from '.'
+import { getResizedElementAbsoluteCoords } from './bounds'
+import { bumpVersion, newElementWith } from './mutateElement'
+import { getBoundTextMaxWidth, getDefaultLineHeight, measureText, normalizeText, wrapText } from './textElement'
+import {
+  Arrowhead,
+  ExcalidrawElement,
+  ExcalidrawEmbeddableElement,
+  ExcalidrawFrameElement,
+  ExcalidrawFreeDrawElement,
+  ExcalidrawGenericElement,
+  ExcalidrawImageElement,
+  ExcalidrawLinearElement,
+  ExcalidrawMagicFrameElement,
+  ExcalidrawTextContainer,
+  ExcalidrawTextElement,
+  FontFamilyValues,
+  GroupId,
+  NonDeleted,
+  TextAlign,
+  VerticalAlign
+} from './types'
 
 export type ElementConstructorOpts = MarkOptional<
   Omit<ExcalidrawGenericElement, 'id' | 'type' | 'isDeleted' | 'updated'>,
@@ -105,7 +105,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     seed: rest.seed ?? randomInteger(),
     version: rest.version || 1,
     versionNonce: rest.versionNonce ?? 0,
-    isDeleted: false as false,
+    isDeleted: false as const,
     boundElements,
     updated: getUpdatedTimestamp(),
     link,

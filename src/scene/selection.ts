@@ -1,9 +1,9 @@
-import { ElementsMapOrArray, ExcalidrawElement, NonDeletedExcalidrawElement } from '../element/types'
-import { AppState, InteractiveCanvasAppState } from '../types'
-import { isBoundToContainer, isFrameLikeElement } from '../element/typeChecks'
-import { getFrameChildren } from '../frame'
-import { isShallowEqual } from '../utils'
 import { isElementInViewport } from '../element/sizeHelpers'
+import { isBoundToContainer, isFrameLikeElement } from '../element/typeChecks'
+import { ElementsMapOrArray, ExcalidrawElement, NonDeletedExcalidrawElement } from '../element/types'
+import { getFrameChildren } from '../frame'
+import { AppState, InteractiveCanvasAppState } from '../types'
+import { isShallowEqual } from '../utils'
 
 /**
  * Frames and their containing elements are not to be selected at the same time.

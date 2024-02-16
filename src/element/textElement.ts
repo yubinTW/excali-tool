@@ -1,4 +1,30 @@
-import { getFontString, arrayToMap, normalizeEOL } from '../utils'
+import 'global-jsdom/register'
+
+import { createCanvas } from 'canvas'
+
+import {
+  ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
+  ARROW_LABEL_WIDTH_FRACTION,
+  BOUND_TEXT_PADDING,
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_SIZE,
+  FONT_FAMILY,
+  TEXT_ALIGN,
+  VERTICAL_ALIGN
+} from '../constants'
+import { getSelectedElements } from '../scene'
+import { AppState } from '../types'
+import { ExtractSetType } from '../utility-types'
+import { arrayToMap, getFontString, normalizeEOL } from '../utils'
+import { isTextElement } from '.'
+import { getElementAbsoluteCoords } from '.'
+import { isHittingElementNotConsideringBoundingBox } from './collision'
+import { resetOriginalContainerCache, updateOriginalContainerCache } from './containerCache'
+import { LinearElementEditor } from './linearElementEditor'
+import { mutateElement } from './mutateElement'
+import { MaybeTransformHandleType } from './transformHandles'
+import { isArrowElement, isBoundToContainer } from './typeChecks'
+import { isTextBindableContainer } from './typeChecks'
 import {
   ElementsMap,
   ExcalidrawElement,
@@ -10,33 +36,6 @@ import {
   FontString,
   NonDeletedExcalidrawElement
 } from './types'
-import { mutateElement } from './mutateElement'
-import {
-  ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
-  ARROW_LABEL_WIDTH_FRACTION,
-  BOUND_TEXT_PADDING,
-  DEFAULT_FONT_FAMILY,
-  DEFAULT_FONT_SIZE,
-  FONT_FAMILY,
-  TEXT_ALIGN,
-  VERTICAL_ALIGN
-} from '../constants'
-import { MaybeTransformHandleType } from './transformHandles'
-import { isTextElement } from '.'
-import { isBoundToContainer, isArrowElement } from './typeChecks'
-import { LinearElementEditor } from './linearElementEditor'
-import { AppState } from '../types'
-import { isTextBindableContainer } from './typeChecks'
-import { getElementAbsoluteCoords } from '.'
-import { getSelectedElements } from '../scene'
-import { isHittingElementNotConsideringBoundingBox } from './collision'
-
-import { ExtractSetType } from '../utility-types'
-import { resetOriginalContainerCache, updateOriginalContainerCache } from './containerCache'
-
-import 'global-jsdom/register'
-
-import { createCanvas } from 'canvas'
 
 export const normalizeText = (text: string) => {
   return (
@@ -272,8 +271,7 @@ export const measureBaseline = (
   span.style.width = '1px'
   span.style.height = '1px'
   container.appendChild(span)
-  let baseline = span.offsetTop + span.offsetHeight
-  const height = container.offsetHeight
+  const baseline = span.offsetTop + span.offsetHeight
 
   document.body.removeChild(container)
   return baseline

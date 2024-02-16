@@ -1,11 +1,11 @@
-import { ExcalidrawElement } from './types'
-import Scene from '../scene/Scene'
 import { getSizeFromPoints } from '../points'
 import { randomInteger } from '../random'
-import { Point } from '../types'
-import { getUpdatedTimestamp } from '../utils'
-import { Mutable } from '../utility-types'
+import Scene from '../scene/Scene'
 import { ShapeCache } from '../scene/ShapeCache'
+import { Point } from '../types'
+import { Mutable } from '../utility-types'
+import { getUpdatedTimestamp } from '../utils'
+import { ExcalidrawElement } from './types'
 
 type ElementUpdate<TElement extends ExcalidrawElement> = Omit<Partial<TElement>, 'id' | 'version' | 'versionNonce'>
 

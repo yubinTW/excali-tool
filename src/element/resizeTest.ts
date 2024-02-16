@@ -1,15 +1,14 @@
-import { ExcalidrawElement, PointerType, NonDeletedExcalidrawElement } from './types'
-
-import {
-  OMIT_SIDES_FOR_MULTIPLE_ELEMENTS,
-  getTransformHandlesFromCoords,
-  getTransformHandles,
-  TransformHandleType,
-  TransformHandle,
-  MaybeTransformHandleType
-} from './transformHandles'
 import { AppState, Zoom } from '../types'
 import { Bounds } from './bounds'
+import {
+  getTransformHandles,
+  getTransformHandlesFromCoords,
+  MaybeTransformHandleType,
+  OMIT_SIDES_FOR_MULTIPLE_ELEMENTS,
+  TransformHandle,
+  TransformHandleType
+} from './transformHandles'
+import { ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
 
 const isInsideTransformHandle = (transformHandle: TransformHandle, x: number, y: number) =>
   x >= transformHandle[0] &&

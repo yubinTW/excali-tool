@@ -1,20 +1,20 @@
-import {
-  ExcalidrawElement,
-  NonDeletedExcalidrawElement,
-  NonDeleted,
-  ExcalidrawFrameLikeElement,
-  ElementsMapOrArray,
-  SceneElementsMap,
-  NonDeletedSceneElementsMap
-} from '../element/types'
 import { isNonDeletedElement } from '../element'
 import { LinearElementEditor } from '../element/linearElementEditor'
 import { isFrameLikeElement } from '../element/typeChecks'
-import { getSelectedElements } from './selection'
+import {
+  ElementsMapOrArray,
+  ExcalidrawElement,
+  ExcalidrawFrameLikeElement,
+  NonDeleted,
+  NonDeletedExcalidrawElement,
+  NonDeletedSceneElementsMap,
+  SceneElementsMap
+} from '../element/types'
+import { randomInteger } from '../random'
 import { AppState } from '../types'
 import { Assert, SameType } from '../utility-types'
-import { randomInteger } from '../random'
 import { toBrandedType } from '../utils'
+import { getSelectedElements } from './selection'
 
 type ElementIdKey = InstanceType<typeof LinearElementEditor>['elementId']
 type ElementKey = ExcalidrawElement | ElementIdKey

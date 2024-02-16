@@ -1,11 +1,10 @@
-import { ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
-
-import { Bounds, getElementAbsoluteCoords } from './bounds'
+import { DEFAULT_TRANSFORM_HANDLE_SPACING } from '../constants'
 import { rotate } from '../math'
 import { InteractiveCanvasAppState, Zoom } from '../types'
 import { isTextElement } from '.'
+import { Bounds, getElementAbsoluteCoords } from './bounds'
 import { isFrameLikeElement, isLinearElement } from './typeChecks'
-import { DEFAULT_TRANSFORM_HANDLE_SPACING } from '../constants'
+import { ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
 
 export type TransformHandleDirection = 'n' | 's' | 'w' | 'e' | 'nw' | 'ne' | 'sw' | 'se'
 

@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-
 import { nanoid } from 'nanoid'
+
 import { IMAGE_MIME_TYPES, MIME_TYPES } from '../constants'
 import { FileId } from '../element/types'
 import { CanvasError, ImageSceneDataError } from '../errors'

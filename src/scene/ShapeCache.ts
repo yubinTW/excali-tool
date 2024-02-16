@@ -1,10 +1,10 @@
-import { Drawable } from 'roughjs/bin/core'
-import { RoughGenerator } from 'roughjs/bin/generator'
+import { COLOR_PALETTE } from '../colors'
 import { ExcalidrawElement, ExcalidrawSelectionElement } from '../element/types'
+import { Drawable } from '../externalLibrary/roughjs/core'
+import { RoughGenerator } from '../externalLibrary/roughjs/generator'
+import { AppState, EmbedsValidationStatus } from '../types'
 import { _generateElementShape } from './Shape'
 import { ElementShape, ElementShapes } from './types'
-import { COLOR_PALETTE } from '../colors'
-import { AppState, EmbedsValidationStatus } from '../types'
 
 export class ShapeCache {
   private static rg = new RoughGenerator()

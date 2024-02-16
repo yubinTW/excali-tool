@@ -1,27 +1,27 @@
-import {
-  ExcalidrawLinearElement,
-  ExcalidrawBindableElement,
-  NonDeleted,
-  NonDeletedExcalidrawElement,
-  PointBinding,
-  ExcalidrawElement
-} from './types'
 import { getElementAtPosition } from '../scene'
+import Scene from '../scene/Scene'
 import { AppState } from '../types'
-import { isBindableElement, isBindingElement, isLinearElement } from './typeChecks'
+import { arrayToMap, tupleToCoors } from '../utils'
 import {
   bindingBorderTest,
-  distanceToBindableElement,
-  maxBindingGap,
   determineFocusDistance,
+  determineFocusPoint,
+  distanceToBindableElement,
   intersectElementWithLine,
-  determineFocusPoint
+  maxBindingGap
 } from './collision'
-import { mutateElement } from './mutateElement'
-import Scene from '../scene/Scene'
 import { LinearElementEditor } from './linearElementEditor'
-import { arrayToMap, tupleToCoors } from '../utils'
+import { mutateElement } from './mutateElement'
 import { getBoundTextElement, handleBindTextResize } from './textElement'
+import { isBindableElement, isBindingElement, isLinearElement } from './typeChecks'
+import {
+  ExcalidrawBindableElement,
+  ExcalidrawElement,
+  ExcalidrawLinearElement,
+  NonDeleted,
+  NonDeletedExcalidrawElement,
+  PointBinding
+} from './types'
 
 export type SuggestedBinding = NonDeleted<ExcalidrawBindableElement> | SuggestedPointBinding
 

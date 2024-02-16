@@ -21,23 +21,6 @@ const RE_GENERIC_EMBED = /^<(?:iframe|blockquote)[\s\S]*?\s(?:src|href)=["']([^"
 
 const RE_GIPHY = /giphy.com\/(?:clips|embed|gifs)\/[a-zA-Z0-9]*?-?([a-zA-Z0-9]+)(?:[^a-zA-Z0-9]|$)/
 
-const ALLOWED_DOMAINS = new Set([
-  'youtube.com',
-  'youtu.be',
-  'vimeo.com',
-  'player.vimeo.com',
-  'figma.com',
-  'link.excalidraw.com',
-  'gist.github.com',
-  'twitter.com',
-  'x.com',
-  '*.simplepdf.eu',
-  'stackblitz.com',
-  'val.town',
-  'giphy.com',
-  'dddice.com'
-])
-
 export const createSrcDoc = (body: string) => {
   return `<html><body>${body}</body></html>`
 }

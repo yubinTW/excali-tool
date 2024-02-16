@@ -1,13 +1,8 @@
-import { updateBoundElements } from './binding'
-import { Bounds, getCommonBounds } from './bounds'
+import { AppState } from '../types'
+import { getCommonBounds } from './bounds'
 import { mutateElement } from './mutateElement'
 import { getPerfectElementSize } from './sizeHelpers'
 import { NonDeletedExcalidrawElement } from './types'
-import { AppState } from '../types'
-import { getBoundTextElement } from './textElement'
-import { getGridPoint } from '../math'
-import Scene from '../scene/Scene'
-import { isArrowElement, isFrameLikeElement } from './typeChecks'
 
 export const getDragOffsetXY = (
   selectedElements: NonDeletedExcalidrawElement[],

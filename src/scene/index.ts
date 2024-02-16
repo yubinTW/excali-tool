@@ -1,16 +1,16 @@
 export {
-  isSomeElementSelected,
-  getCommonAttributeOfSelectedElements,
-  getSelectedElements,
-  getTargetElements
-} from './selection'
+  canChangeRoundness,
+  canHaveArrowheads,
+  getElementAtPosition,
+  hasBackground,
+  hasStrokeStyle,
+  hasStrokeWidth
+} from './comparisons'
 export { calculateScrollCenter } from './scroll'
 export {
-  hasBackground,
-  hasStrokeWidth,
-  hasStrokeStyle,
-  canHaveArrowheads,
-  canChangeRoundness,
-  getElementAtPosition
-} from './comparisons'
+  getCommonAttributeOfSelectedElements,
+  getSelectedElements,
+  getTargetElements,
+  isSomeElementSelected
+} from './selection'
 export { getNormalizedZoom } from './zoom'

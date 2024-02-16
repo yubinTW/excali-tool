@@ -1,40 +1,37 @@
+import { pointsOnBezierCurves } from '../externalLibrary/points-on-curve'
+import { Drawable } from '../externalLibrary/roughjs/core'
 import * as GA from '../ga'
-import * as GAPoint from '../gapoints'
 import * as GADirection from '../gadirections'
 import * as GALine from '../galines'
+import * as GAPoint from '../gapoints'
 import * as GATransform from '../gatransforms'
-
-import { distance2d, rotatePoint, isPathALoop, isPointInPolygon, rotate } from '../math'
-import { pointsOnBezierCurves } from 'points-on-curve'
-
+import { distance2d, isPathALoop, isPointInPolygon, rotate, rotatePoint } from '../math'
+import { ShapeCache } from '../scene/ShapeCache'
+import { FrameNameBoundsCache, Point } from '../types'
+import { AppState } from '../types'
+import { Mutable } from '../utility-types'
+import { isTransparent } from '../utils'
+import { isTextElement } from '.'
+import { getCurvePathOps, getElementAbsoluteCoords, getRectangleBoxAbsoluteCoords, RectangleBox } from './bounds'
+import { getBoundTextElement } from './textElement'
+import { shouldShowBoundingBox } from './transformHandles'
+import { hasBoundTextElement, isFrameLikeElement, isImageElement } from './typeChecks'
 import {
-  NonDeletedExcalidrawElement,
+  ElementsMap,
   ExcalidrawBindableElement,
-  ExcalidrawElement,
-  ExcalidrawRectangleElement,
   ExcalidrawDiamondElement,
-  ExcalidrawTextElement,
+  ExcalidrawElement,
   ExcalidrawEllipseElement,
-  NonDeleted,
+  ExcalidrawFrameLikeElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawImageElement,
   ExcalidrawLinearElement,
-  StrokeRoundness,
-  ExcalidrawFrameLikeElement,
-  ElementsMap
+  ExcalidrawRectangleElement,
+  ExcalidrawTextElement,
+  NonDeleted,
+  NonDeletedExcalidrawElement,
+  StrokeRoundness
 } from './types'
-
-import { getElementAbsoluteCoords, getCurvePathOps, getRectangleBoxAbsoluteCoords, RectangleBox } from './bounds'
-import { FrameNameBoundsCache, Point } from '../types'
-import { Drawable } from 'roughjs/bin/core'
-import { AppState } from '../types'
-import { hasBoundTextElement, isFrameLikeElement, isImageElement } from './typeChecks'
-import { isTextElement } from '.'
-import { isTransparent } from '../utils'
-import { shouldShowBoundingBox } from './transformHandles'
-import { getBoundTextElement } from './textElement'
-import { Mutable } from '../utility-types'
-import { ShapeCache } from '../scene/ShapeCache'
 
 const isElementDraggableFromInside = (element: NonDeletedExcalidrawElement): boolean => {
   if (element.type === 'arrow') {

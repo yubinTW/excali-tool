@@ -1,8 +1,8 @@
 {
   "name": "excali-tool",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "A tool for excalidraw, running on node.js",
-  "main": "index.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -10,13 +10,19 @@
   "scripts": {
     "test": "vitest",
     "build": "tsc",
-    "fix-prettier": "prettier --write \"{src,test}/**/*.ts\""
+    "fix-prettier": "prettier --write \"{src,test}/**/*.ts\"",
+    "check-lint": "eslint --color package.json \"{src,test}/**/*.ts\"",
+    "fix-lint": "eslint --fix \"{src,test}/**/*.ts\""
   },
   "author": "Yubin, Hsu",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.16",
     "@types/pako": "^2.0.3",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
     "prettier": "^3.2.5",
     "typescript": "^5.3.3",
     "vitest": "^1.2.2"
@@ -25,8 +31,8 @@
     "@braintree/sanitize-url": "^7.0.0",
     "canvas": "^2.11.2",
     "global-jsdom": "^24.0.0",
+    "nanoid": "^3.3.4",
     "open-color": "^1.9.1",
-    "pako": "^2.1.0",
-    "roughjs": "^4.6.6"
+    "pako": "^2.1.0"
   }
 }

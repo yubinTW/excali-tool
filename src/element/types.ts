@@ -1,5 +1,5 @@
-import { Point } from '../types'
 import { FONT_FAMILY, ROUNDNESS, TEXT_ALIGN, THEME, VERTICAL_ALIGN } from '../constants'
+import { Point } from '../types'
 import { MakeBrand, MarkNonNullable, ValueOf } from '../utility-types'
 
 export type ChartType = 'bar' | 'line'
@@ -216,7 +216,7 @@ export type ExcalidrawArrowElement = ExcalidrawLinearElement &
 export type ExcalidrawFreeDrawElement = _ExcalidrawElementBase &
   Readonly<{
     type: 'freedraw'
-    points: readonly Point[]
+    points: Point[]
     pressures: readonly number[]
     simulatePressure: boolean
     lastCommittedPoint: Point | null

@@ -1,18 +1,6 @@
-import type { RoughCanvas } from 'roughjs/bin/canvas'
-import { Drawable } from 'roughjs/bin/core'
-import {
-  ExcalidrawTextElement,
-  NonDeletedElementsMap,
-  NonDeletedExcalidrawElement,
-  NonDeletedSceneElementsMap
-} from '../element/types'
-import {
-  AppState,
-  EmbedsValidationStatus,
-  ElementsPendingErasure,
-  InteractiveCanvasAppState,
-  StaticCanvasAppState
-} from '../types'
+import { ExcalidrawTextElement, NonDeletedElementsMap } from '../element/types'
+import { Drawable } from '../externalLibrary/roughjs/core'
+import { AppState, EmbedsValidationStatus } from '../types'
 import { MakeBrand } from '../utility-types'
 
 export type RenderableElementsMap = NonDeletedElementsMap & MakeBrand<'RenderableElementsMap'>

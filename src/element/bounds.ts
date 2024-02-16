@@ -1,25 +1,25 @@
-import {
-  ExcalidrawElement,
-  ExcalidrawLinearElement,
-  Arrowhead,
-  ExcalidrawFreeDrawElement,
-  NonDeleted,
-  ExcalidrawTextElementWithContainer,
-  ElementsMapOrArray,
-  ElementsMap
-} from './types'
+import { Drawable, Op } from '../externalLibrary/roughjs/core'
+import rough from '../externalLibrary/roughjs/rough'
 import { distance2d, rotate, rotatePoint } from '../math'
-import rough from 'roughjs/bin/rough'
-import { Drawable, Op } from 'roughjs/bin/core'
-import { AppState, Point } from '../types'
-import { generateRoughOptions } from '../scene/Shape'
-import { isArrowElement, isBoundToContainer, isFreeDrawElement, isLinearElement, isTextElement } from './typeChecks'
 import { rescalePoints } from '../points'
-import { getBoundTextElement, getContainerElement } from './textElement'
-import { LinearElementEditor } from './linearElementEditor'
-import { Mutable } from '../utility-types'
-import { ShapeCache } from '../scene/ShapeCache'
 import Scene from '../scene/Scene'
+import { generateRoughOptions } from '../scene/Shape'
+import { ShapeCache } from '../scene/ShapeCache'
+import { AppState, Point } from '../types'
+import { Mutable } from '../utility-types'
+import { LinearElementEditor } from './linearElementEditor'
+import { getBoundTextElement, getContainerElement } from './textElement'
+import { isArrowElement, isBoundToContainer, isFreeDrawElement, isLinearElement, isTextElement } from './typeChecks'
+import {
+  Arrowhead,
+  ElementsMap,
+  ElementsMapOrArray,
+  ExcalidrawElement,
+  ExcalidrawFreeDrawElement,
+  ExcalidrawLinearElement,
+  ExcalidrawTextElementWithContainer,
+  NonDeleted
+} from './types'
 
 export type RectangleBox = {
   x: number

@@ -3,21 +3,21 @@ import { ElementOrToolType } from '../types'
 import { MarkNonNullable } from '../utility-types'
 import { assertNever } from '../utils'
 import {
-  ExcalidrawElement,
-  ExcalidrawTextElement,
-  ExcalidrawEmbeddableElement,
-  ExcalidrawLinearElement,
   ExcalidrawBindableElement,
-  ExcalidrawFreeDrawElement,
-  InitializedExcalidrawImageElement,
-  ExcalidrawImageElement,
-  ExcalidrawTextElementWithContainer,
-  ExcalidrawTextContainer,
-  ExcalidrawFrameElement,
-  RoundnessType,
-  ExcalidrawFrameLikeElement,
+  ExcalidrawElement,
   ExcalidrawElementType,
-  ExcalidrawMagicFrameElement
+  ExcalidrawEmbeddableElement,
+  ExcalidrawFrameElement,
+  ExcalidrawFrameLikeElement,
+  ExcalidrawFreeDrawElement,
+  ExcalidrawImageElement,
+  ExcalidrawLinearElement,
+  ExcalidrawMagicFrameElement,
+  ExcalidrawTextContainer,
+  ExcalidrawTextElement,
+  ExcalidrawTextElementWithContainer,
+  InitializedExcalidrawImageElement,
+  RoundnessType
 } from './types'
 
 export const isInitializedImageElement = (

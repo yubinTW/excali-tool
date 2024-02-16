@@ -1,10 +1,10 @@
-import { ExcalidrawElement } from './types'
-import { mutateElement } from './mutateElement'
-import { isFreeDrawElement, isLinearElement } from './typeChecks'
 import { SHIFT_LOCKING_ANGLE } from '../constants'
 import { AppState, Zoom } from '../types'
-import { getElementBounds } from './bounds'
 import { viewportCoordsToSceneCoords } from '../utils'
+import { getElementBounds } from './bounds'
+import { mutateElement } from './mutateElement'
+import { isFreeDrawElement, isLinearElement } from './typeChecks'
+import { ExcalidrawElement } from './types'
 
 export const isInvisiblySmallElement = (element: ExcalidrawElement): boolean => {
   if (isLinearElement(element) || isFreeDrawElement(element)) {

@@ -1,7 +1,6 @@
-import { AppState, PointerCoords, Zoom } from '../types'
+import { getClosestElementBounds, getCommonBounds, getVisibleElements } from '../element'
 import { ExcalidrawElement } from '../element/types'
-import { getCommonBounds, getClosestElementBounds, getVisibleElements } from '../element'
-
+import { AppState, PointerCoords, Zoom } from '../types'
 import { sceneCoordsToViewportCoords, viewportCoordsToSceneCoords } from '../utils'
 
 const isOutsideViewPort = (appState: AppState, cords: Array<number>) => {

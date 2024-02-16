@@ -1,37 +1,36 @@
-import {
-  NonDeleted,
-  ExcalidrawLinearElement,
-  ExcalidrawElement,
-  PointBinding,
-  ExcalidrawBindableElement,
-  ExcalidrawTextElementWithContainer,
-  ElementsMap
-} from './types'
-import {
-  distance2d,
-  rotate,
-  isPathALoop,
-  getGridPoint,
-  rotatePoint,
-  centerPoint,
-  getControlPointsForBezierCurve,
-  getBezierXY,
-  getBezierCurveLength,
-  mapIntervalToBezierT,
-  arePointsEqual
-} from '../math'
-import { getElementAbsoluteCoords, getLockedLinearCursorAlignSize } from '.'
-import { Bounds, getCurvePathOps, getElementPointsCoords, getMinMaxXYFromCurvePathOps } from './bounds'
-import { Point, AppState, PointerCoords, InteractiveCanvasAppState } from '../types'
-import { mutateElement } from './mutateElement'
-
-import Scene from '../scene/Scene'
-import { getHoveredElementForBinding, isBindingEnabled } from './binding'
-import { tupleToCoors } from '../utils'
-import { getBoundTextElement } from './textElement'
 import { DRAGGING_THRESHOLD } from '../constants'
-import { Mutable } from '../utility-types'
+import {
+  arePointsEqual,
+  centerPoint,
+  distance2d,
+  getBezierCurveLength,
+  getBezierXY,
+  getControlPointsForBezierCurve,
+  getGridPoint,
+  isPathALoop,
+  mapIntervalToBezierT,
+  rotate,
+  rotatePoint
+} from '../math'
+import Scene from '../scene/Scene'
 import { ShapeCache } from '../scene/ShapeCache'
+import { AppState, InteractiveCanvasAppState, Point, PointerCoords } from '../types'
+import { Mutable } from '../utility-types'
+import { tupleToCoors } from '../utils'
+import { getElementAbsoluteCoords, getLockedLinearCursorAlignSize } from '.'
+import { getHoveredElementForBinding, isBindingEnabled } from './binding'
+import { Bounds, getCurvePathOps, getElementPointsCoords, getMinMaxXYFromCurvePathOps } from './bounds'
+import { mutateElement } from './mutateElement'
+import { getBoundTextElement } from './textElement'
+import {
+  ElementsMap,
+  ExcalidrawBindableElement,
+  ExcalidrawElement,
+  ExcalidrawLinearElement,
+  ExcalidrawTextElementWithContainer,
+  NonDeleted,
+  PointBinding
+} from './types'
 
 const editorMidPointsCache: {
   version: number | null
@@ -439,7 +438,7 @@ export class LinearElementEditor {
     const offsetY = points[0][1]
 
     return {
-      points: points.map((point, _idx) => {
+      points: points.map((point) => {
         return [point[0] - offsetX, point[1] - offsetY] as const
       }),
       x: element.x + offsetX,
@@ -877,10 +876,4 @@ export class LinearElementEditor {
 
     return coords
   }
-}
-
-const normalizeSelectedPoints = (points: (number | null)[]): number[] | null => {
-  let nextPoints = [...new Set(points.filter((p) => p !== null && p !== -1))] as number[]
-  nextPoints = nextPoints.sort((a, b) => a - b)
-  return nextPoints.length ? nextPoints : null
 }

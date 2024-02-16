@@ -1,49 +1,47 @@
-import { ExcalidrawElement, NonDeletedExcalidrawElement, NonDeleted } from './types'
 import { isInvisiblySmallElement } from './sizeHelpers'
 import { isLinearElementType } from './typeChecks'
+import { ExcalidrawElement, NonDeleted, NonDeletedExcalidrawElement } from './types'
 
 export {
-  newElement,
-  newTextElement,
-  updateTextElement,
-  refreshTextDimensions,
-  newLinearElement,
-  newImageElement,
-  duplicateElement
-} from './newElement'
-export {
-  getElementAbsoluteCoords,
-  getElementBounds,
+  getArrowheadPoints,
+  getClosestElementBounds,
   getCommonBounds,
   getDiamondPoints,
-  getArrowheadPoints,
-  getClosestElementBounds
+  getElementAbsoluteCoords,
+  getElementBounds
 } from './bounds'
-
-export {
-  OMIT_SIDES_FOR_MULTIPLE_ELEMENTS,
-  getTransformHandlesFromCoords,
-  getTransformHandles
-} from './transformHandles'
 export { hitTest, isHittingElementBoundingBoxWithoutHittingElement } from './collision'
+export { dragNewElement, getDragOffsetXY } from './dragElements'
 export {
-  resizeTest,
+  duplicateElement,
+  newElement,
+  newImageElement,
+  newLinearElement,
+  newTextElement,
+  refreshTextDimensions,
+  updateTextElement
+} from './newElement'
+export {
   getCursorForResizingElement,
   getElementWithTransformHandleType,
-  getTransformHandleTypeFromCoords
+  getTransformHandleTypeFromCoords,
+  resizeTest
 } from './resizeTest'
-
-export { getDragOffsetXY, dragNewElement } from './dragElements'
-export { isTextElement, isExcalidrawElement } from './typeChecks'
+export { showSelectedShapeActions } from './showSelectedShapeActions'
+export {
+  getLockedLinearCursorAlignSize,
+  getNormalizedDimensions,
+  getPerfectElementSize,
+  isInvisiblySmallElement,
+  resizePerfectLineForNWHandler
+} from './sizeHelpers'
 export { redrawTextBoundingBox } from './textElement'
 export {
-  getPerfectElementSize,
-  getLockedLinearCursorAlignSize,
-  isInvisiblySmallElement,
-  resizePerfectLineForNWHandler,
-  getNormalizedDimensions
-} from './sizeHelpers'
-export { showSelectedShapeActions } from './showSelectedShapeActions'
+  getTransformHandles,
+  getTransformHandlesFromCoords,
+  OMIT_SIDES_FOR_MULTIPLE_ELEMENTS
+} from './transformHandles'
+export { isExcalidrawElement, isTextElement } from './typeChecks'
 
 export const getSceneVersion = (elements: readonly ExcalidrawElement[]) =>
   elements.reduce((acc, el) => acc + el.version, 0)
