@@ -7,6 +7,10 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "excalidraw",
+    "tool"
+  ],
   "scripts": {
     "test": "vitest",
     "build": "tsc",
