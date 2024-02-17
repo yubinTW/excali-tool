@@ -1,7 +1,7 @@
-import { AppState } from './types'
-import { ExcalidrawElement } from './element/types'
-import { isLinearElement } from './element/typeChecks'
 import { deepCopyElement } from './element/newElement'
+import { isLinearElement } from './element/typeChecks'
+import { ExcalidrawElement } from './element/types'
+import { AppState } from './types'
 import { Mutable } from './utility-types'
 
 export interface HistoryEntry {

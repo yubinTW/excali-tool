@@ -1,6 +1,6 @@
-import { GroupId, ExcalidrawElement, NonDeleted, ElementsMapOrArray, ElementsMap } from './element/types'
-import { AppState, InteractiveCanvasAppState } from './types'
 import { getBoundTextElement } from './element/textElement'
+import { ElementsMap,ElementsMapOrArray, ExcalidrawElement, GroupId, NonDeleted } from './element/types'
+import { AppState, InteractiveCanvasAppState } from './types'
 
 export const selectGroup = (
   groupId: GroupId,
@@ -145,7 +145,7 @@ export const removeFromSelectedGroups = (
 ) => groupIds.filter((groupId) => !selectedGroupIds[groupId])
 
 export const getMaximumGroups = (elements: ExcalidrawElement[], elementsMap: ElementsMap): ExcalidrawElement[][] => {
-  const groups: Map<String, ExcalidrawElement[]> = new Map<String, ExcalidrawElement[]>()
+  const groups: Map<string, ExcalidrawElement[]> = new Map<string, ExcalidrawElement[]>()
   elements.forEach((element: ExcalidrawElement) => {
     const groupId = element.groupIds.length === 0 ? element.id : element.groupIds[element.groupIds.length - 1]
 

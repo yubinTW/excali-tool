@@ -1,5 +1,5 @@
-import { ExcalidrawElement, FontFamilyValues } from './element/types'
 import { COLOR_PALETTE } from './colors'
+import { ExcalidrawElement, FontFamilyValues } from './element/types'
 
 export const APP_NAME = 'Excalidraw'
 

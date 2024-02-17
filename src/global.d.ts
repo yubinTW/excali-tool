@@ -68,7 +68,7 @@ interface Uint8Array {
 
 // https://github.com/nodeca/image-blob-reduce/issues/23#issuecomment-783271848
 declare module 'image-blob-reduce' {
-  import { PicaResizeOptions, Pica } from 'pica'
+  import { Pica,PicaResizeOptions } from 'pica'
   namespace ImageBlobReduce {
     interface ImageBlobReduce {
       toBlob(file: File, options: ImageBlobReduceOptions): Promise<Blob>

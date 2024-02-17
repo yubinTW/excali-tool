@@ -40,7 +40,7 @@ export const calculateScrollCenter = (
   let [x1, y1, x2, y2] = getCommonBounds(elements)
 
   if (isOutsideViewPort(appState, [x1, y1, x2, y2])) {
-    ;[x1, y1, x2, y2] = getClosestElementBounds(
+    [x1, y1, x2, y2] = getClosestElementBounds(
       elements,
       viewportCoordsToSceneCoords({ clientX: appState.scrollX, clientY: appState.scrollY }, appState)
     )

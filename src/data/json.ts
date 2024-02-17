@@ -1,5 +1,4 @@
 import { EXPORT_DATA_TYPES } from '../constants'
-
 import { ImportedLibraryData } from './types'
 
 export const isValidLibrary = (json: any): json is ImportedLibraryData => {

@@ -40,9 +40,9 @@ export const dragNewElement = (
       // (originX, originY), we use ONLY width or height to control size increase.
       // This allows the cursor to always "stick" to one of the sides of the bounding box.
       if (Math.abs(y - originY) > Math.abs(x - originX)) {
-        ;({ width, height } = getPerfectElementSize(elementType, height, x < originX ? -width : width))
+        ({ width, height } = getPerfectElementSize(elementType, height, x < originX ? -width : width))
       } else {
-        ;({ width, height } = getPerfectElementSize(elementType, width, y < originY ? -height : height))
+        ({ width, height } = getPerfectElementSize(elementType, width, y < originY ? -height : height))
       }
 
       if (height < 0) {

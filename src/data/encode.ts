@@ -1,5 +1,6 @@
 import { deflate, inflate } from 'pako'
-import { encryptData, decryptData } from './encryption'
+
+import { decryptData, encryptData } from './encryption'
 
 // -----------------------------------------------------------------------------
 // byte (binary) strings

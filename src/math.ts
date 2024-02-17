@@ -1,9 +1,9 @@
-import { NormalizedZoomValue, Point, Zoom } from './types'
-import { DEFAULT_ADAPTIVE_RADIUS, LINE_CONFIRM_THRESHOLD, DEFAULT_PROPORTIONAL_RADIUS, ROUNDNESS } from './constants'
-import { ExcalidrawElement, ExcalidrawLinearElement, NonDeleted } from './element/types'
+import { DEFAULT_ADAPTIVE_RADIUS, DEFAULT_PROPORTIONAL_RADIUS, LINE_CONFIRM_THRESHOLD, ROUNDNESS } from './constants'
 import { getCurvePathOps } from './element/bounds'
-import { Mutable } from './utility-types'
+import { ExcalidrawElement, ExcalidrawLinearElement, NonDeleted } from './element/types'
 import { ShapeCache } from './scene/ShapeCache'
+import { NormalizedZoomValue, Point, Zoom } from './types'
+import { Mutable } from './utility-types'
 
 export const rotate = (
   // target point to rotate

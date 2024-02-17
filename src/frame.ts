@@ -1,4 +1,7 @@
 import { getCommonBounds, getElementAbsoluteCoords, isTextElement } from './element'
+import { mutateElement } from './element/mutateElement'
+import { getBoundTextElement, getContainerElement } from './element/textElement'
+import { isFrameLikeElement } from './element/typeChecks'
 import {
   ElementsMap,
   ElementsMapOrArray,
@@ -7,16 +10,12 @@ import {
   NonDeleted,
   NonDeletedExcalidrawElement
 } from './element/types'
-import { isPointWithinBounds } from './math'
-import { getBoundTextElement, getContainerElement } from './element/textElement'
-import { arrayToMap } from './utils'
-import { mutateElement } from './element/mutateElement'
-import { StaticCanvasAppState } from './types'
 import { getElementsInGroup } from './groups'
+import { isPointWithinBounds } from './math'
 import Scene, { ExcalidrawElementsIncludingDeleted } from './scene/Scene'
-
-import { isFrameLikeElement } from './element/typeChecks'
+import { StaticCanvasAppState } from './types'
 import { ReadonlySetLike } from './utility-types'
+import { arrayToMap } from './utils'
 
 // --------------------------- Frame State ------------------------------------
 export const bindElementsToFramesAfterDuplication = (

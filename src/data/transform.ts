@@ -27,10 +27,10 @@ import {
   TextAlign,
   VerticalAlign
 } from '../element/types'
-import { MarkOptional } from '../utility-types'
-import { arrayToMap, assertNever, cloneJSON, getFontString } from '../utils'
 import { getSizeFromPoints } from '../points'
 import { randomId } from '../random'
+import { MarkOptional } from '../utility-types'
+import { arrayToMap, assertNever, cloneJSON, getFontString } from '../utils'
 
 export type ValidLinearElement = {
   type: 'arrow' | 'line'

@@ -1,4 +1,17 @@
 import {
+  DEFAULT_ELEMENT_PROPS,
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_TEXT_ALIGN,
+  DEFAULT_VERTICAL_ALIGN,
+  FONT_FAMILY,
+  PRECEDING_ELEMENT_KEY,
+  ROUNDNESS} from '../constants'
+import { getNormalizedDimensions } from '../element'
+import { LinearElementEditor } from '../element/linearElementEditor'
+import { bumpVersion } from '../element/mutateElement'
+import { detectLineHeight, getDefaultLineHeight, measureBaseline } from '../element/textElement'
+import { isTextElement, isUsingAdaptiveRadius } from '../element/typeChecks'
+import {
   ExcalidrawElement,
   ExcalidrawElementType,
   ExcalidrawSelectionElement,
@@ -7,24 +20,10 @@ import {
   PointBinding,
   StrokeRoundness
 } from '../element/types'
-import { AppState, BinaryFiles } from '../types'
-import { getNormalizedDimensions } from '../element'
-import { isTextElement, isUsingAdaptiveRadius } from '../element/typeChecks'
 import { randomId } from '../random'
-import {
-  DEFAULT_FONT_FAMILY,
-  DEFAULT_TEXT_ALIGN,
-  DEFAULT_VERTICAL_ALIGN,
-  PRECEDING_ELEMENT_KEY,
-  FONT_FAMILY,
-  ROUNDNESS,
-  DEFAULT_ELEMENT_PROPS
-} from '../constants'
-import { LinearElementEditor } from '../element/linearElementEditor'
-import { bumpVersion } from '../element/mutateElement'
-import { getFontString, getUpdatedTimestamp } from '../utils'
+import { AppState, BinaryFiles } from '../types'
 import { Mutable } from '../utility-types'
-import { detectLineHeight, getDefaultLineHeight, measureBaseline } from '../element/textElement'
+import { getFontString, getUpdatedTimestamp } from '../utils'
 import { normalizeLink } from './url'
 
 type RestoredAppState = Omit<AppState, 'offsetTop' | 'offsetLeft' | 'width' | 'height'>
@@ -224,7 +223,7 @@ const restoreElement = (element: Exclude<ExcalidrawElement, ExcalidrawSelectionE
           : element.points
 
       if (points[0][0] !== 0 || points[0][1] !== 0) {
-        ;({ points, x, y } = LinearElementEditor.getNormalizedPoints(element))
+        ({ points, x, y } = LinearElementEditor.getNormalizedPoints(element))
       }
 
       return restoreElementWithProperties(element, {
@@ -294,7 +293,7 @@ const repairContainerElement = (
             // if defined, lest boundElements is stale
             !boundElement.containerId
           ) {
-            ;(boundElement as Mutable<ExcalidrawTextElement>).containerId = container.id
+            (boundElement as Mutable<ExcalidrawTextElement>).containerId = container.id
           }
         }
         return acc

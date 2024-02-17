@@ -1,6 +1,6 @@
 import * as GA from './ga'
+import { join,Line, Point } from './ga'
 import * as GALine from './galines'
-import { Point, Line, join } from './ga'
 
 export const from = ([x, y]: readonly [number, number]): Point => [0, 0, 0, 0, y, x, 1, 0]
 

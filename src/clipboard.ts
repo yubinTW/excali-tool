@@ -1,11 +1,11 @@
-import { ExcalidrawElement, NonDeletedExcalidrawElement } from './element/types'
-import { BinaryFiles } from './types'
-import { tryParseSpreadsheet, Spreadsheet, VALID_SPREADSHEET } from './charts'
+import { Spreadsheet, tryParseSpreadsheet, VALID_SPREADSHEET } from './charts'
 import { ALLOWED_PASTE_MIME_TYPES, EXPORT_DATA_TYPES, MIME_TYPES } from './constants'
-import { isFrameLikeElement, isInitializedImageElement } from './element/typeChecks'
-import { deepCopyElement } from './element/newElement'
 import { mutateElement } from './element/mutateElement'
+import { deepCopyElement } from './element/newElement'
+import { isFrameLikeElement, isInitializedImageElement } from './element/typeChecks'
+import { ExcalidrawElement, NonDeletedExcalidrawElement } from './element/types'
 import { getContainingFrame } from './frame'
+import { BinaryFiles } from './types'
 import { isMemberOf, isPromiseLike } from './utils'
 
 type ElementsClipboard = {
