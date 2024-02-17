@@ -1,8 +1,12 @@
 # Excali Tool
 
+[![NPM version](https://img.shields.io/npm/v/excali-tool.svg?style=flat)](https://www.npmjs.com/package/excali-tool)
+
 Some excalidraw function runs on Node.js. (Server Side)
 
 ## Install
+
+https://www.npmjs.com/package/excali-tool
 
 This library depends on [node-canvas](https://github.com/Automattic/node-canvas), see this [wiki](https://github.com/Automattic/node-canvas/wiki/_pages) for more installation information.
 
