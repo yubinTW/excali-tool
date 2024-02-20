@@ -1,5 +1,6 @@
 # Excali Tool
 
+[![Node.js CI](https://github.com/yubinTW/excali-tool/actions/workflows/node.js.yml/badge.svg)](https://github.com/yubinTW/excali-tool/actions/workflows/node.js.yml)
 [![NPM version](https://img.shields.io/npm/v/excali-tool.svg?style=flat)](https://www.npmjs.com/package/excali-tool)
 
 Some excalidraw function runs on Node.js. (Server Side)
