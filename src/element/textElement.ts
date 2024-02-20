@@ -247,34 +247,24 @@ export const measureBaseline = (
   lineHeight: ExcalidrawTextElement['lineHeight'],
   wrapInContainer?: boolean
 ) => {
-  const container = document.createElement('div')
-  container.style.position = 'absolute'
-  container.style.whiteSpace = 'pre'
-  container.style.font = font
-  container.style.minHeight = '1em'
-  if (wrapInContainer) {
-    container.style.overflow = 'hidden'
-    container.style.wordBreak = 'break-word'
-    container.style.whiteSpace = 'pre-wrap'
+  // FIXME: This is a temporary fix for the issue where the baseline is not
+  const fontSize = parseInt(font.split(' ')[0])
+  const fontFamily = font.split(' ')[1].replace(',', '')
+
+  if (fontFamily === 'Virgil') {
+    return Math.ceil(fontSize * 0.88)
+  }
+  if (fontFamily === 'Helvetica') {
+    return Math.ceil(fontSize * 0.97)
+  }
+  if (fontFamily === 'Cascadia') {
+    return Math.ceil(fontSize * 0.99)
+  }
+  if (fontFamily === 'Assistant') {
+    return Math.ceil(fontSize * 0.99)
   }
 
-  container.style.lineHeight = String(lineHeight)
-
-  container.innerText = text
-
-  // Baseline is important for positioning text on canvas
-  document.body.appendChild(container)
-
-  const span = document.createElement('span')
-  span.style.display = 'inline-block'
-  span.style.overflow = 'hidden'
-  span.style.width = '1px'
-  span.style.height = '1px'
-  container.appendChild(span)
-  const baseline = span.offsetTop + span.offsetHeight
-
-  document.body.removeChild(container)
-  return baseline
+  return fontSize
 }
 
 /**

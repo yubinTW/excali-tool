@@ -1,4 +1,4 @@
-import { describe, expect,it, test } from 'vitest'
+import { describe, expect, it, test } from 'vitest'
 
 import { ExcalidrawElementSkeleton } from '../src/data/transform'
 import { convertToExcalidrawElements, generateIdFromDataUrl } from '../src/index'
@@ -12,6 +12,8 @@ describe('Tool Testing', () => {
           x: 100,
           y: 100,
           text: 'Hello world',
+          fontSize: 20,
+          fontFamily: 1,
           customData: {
             createdBy: 'user1'
           }
@@ -47,7 +49,7 @@ describe('Tool Testing', () => {
         fontFamily: 1,
         textAlign: 'left',
         verticalAlign: 'top',
-        baseline: 0,
+        baseline: 18,
         containerId: null,
         originalText: 'Hello world',
         lineHeight: 1.25,
