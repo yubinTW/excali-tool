@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@braintree/sanitize-url": "^7.0.0",
-    "canvas": "^2.11.2",
+    "@napi-rs/canvas": "^0.1.47",
     "global-jsdom": "^24.0.0",
     "nanoid": "^3.3.7",
     "open-color": "^1.9.1",

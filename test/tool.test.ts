@@ -25,7 +25,7 @@ describe('Tool Testing', () => {
         type: 'text',
         x: 100,
         y: 100,
-        width: 98.92578125,
+        width: 98.93000030517578,
         height: 25,
         angle: 0,
         strokeColor: '#1e1e1e',

@@ -1,6 +1,6 @@
 import 'global-jsdom/register'
 
-import { createCanvas } from 'canvas'
+import { createCanvas } from '@napi-rs/canvas'
 
 import {
   ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,

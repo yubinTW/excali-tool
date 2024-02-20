@@ -8,10 +8,6 @@ Some excalidraw function runs on Node.js. (Server Side)
 
 https://www.npmjs.com/package/excali-tool
 
-This library depends on [node-canvas](https://github.com/Automattic/node-canvas), see this [wiki](https://github.com/Automattic/node-canvas/wiki/_pages) for more installation information.
-
-and install in your project
-
 ```
 npm i excali-tool
 ```
@@ -21,7 +17,7 @@ npm i excali-tool
 ### convertToExcalidrawElements
 
 ```typescript
-import { ExcalidrawElementSkeleton } from 'excali-tool/data/transform'
+import { ExcalidrawElementSkeleton } from 'excali-tool/dist/data/transform'
 import { convertToExcalidrawElements } from 'excali-tool'
 
 const rawData: Array<ExcalidrawElementSkeleton> = [
