@@ -8,7 +8,7 @@ import {
   TransformHandle,
   TransformHandleType
 } from './transformHandles'
-import { ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
+import { ElementsMap, ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
 
 const isInsideTransformHandle = (transformHandle: TransformHandle, x: number, y: number) =>
   x >= transformHandle[0] &&
@@ -18,6 +18,7 @@ const isInsideTransformHandle = (transformHandle: TransformHandle, x: number, y:
 
 export const resizeTest = (
   element: NonDeletedExcalidrawElement,
+  elementsMap: ElementsMap,
   appState: AppState,
   x: number,
   y: number,
@@ -28,7 +29,12 @@ export const resizeTest = (
     return false
   }
 
-  const { rotation: rotationTransformHandle, ...transformHandles } = getTransformHandles(element, zoom, pointerType)
+  const { rotation: rotationTransformHandle, ...transformHandles } = getTransformHandles(
+    element,
+    zoom,
+    elementsMap,
+    pointerType
+  )
 
   if (rotationTransformHandle && isInsideTransformHandle(rotationTransformHandle, x, y)) {
     return 'rotation' as TransformHandleType
@@ -55,14 +61,23 @@ export const getElementWithTransformHandleType = (
   scenePointerX: number,
   scenePointerY: number,
   zoom: Zoom,
-  pointerType: PointerType
+  pointerType: PointerType,
+  elementsMap: ElementsMap
 ) => {
   return elements.reduce(
     (result, element) => {
       if (result) {
         return result
       }
-      const transformHandleType = resizeTest(element, appState, scenePointerX, scenePointerY, zoom, pointerType)
+      const transformHandleType = resizeTest(
+        element,
+        elementsMap,
+        appState,
+        scenePointerX,
+        scenePointerY,
+        zoom,
+        pointerType
+      )
       return transformHandleType ? { element, transformHandleType } : null
     },
     null as { element: NonDeletedExcalidrawElement; transformHandleType: MaybeTransformHandleType } | null

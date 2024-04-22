@@ -2,13 +2,12 @@ import { TOOL_TYPE } from './constants'
 import { Bounds, getCommonBounds, getDraggedElementsBounds, getElementAbsoluteCoords } from './element/bounds'
 import { MaybeTransformHandleType } from './element/transformHandles'
 import { isBoundToContainer, isFrameLikeElement } from './element/typeChecks'
-import { ExcalidrawElement, NonDeletedExcalidrawElement } from './element/types'
+import { ElementsMap, ExcalidrawElement, NonDeletedExcalidrawElement } from './element/types'
 import { getMaximumGroups } from './groups'
 import { KEYS } from './keys'
 import { rangeIntersection, rangesOverlap, rotatePoint } from './math'
-import { getVisibleAndNonSelectedElements } from './scene/selection'
+import { getSelectedElements, getVisibleAndNonSelectedElements } from './scene/selection'
 import { AppState, KeyboardModifiersObject, Point } from './types'
-import { arrayToMap } from './utils'
 
 const SNAP_DISTANCE = 8
 
@@ -151,6 +150,7 @@ export const areRoughlyEqual = (a: number, b: number, precision = 0.01) => {
 
 export const getElementsCorners = (
   elements: ExcalidrawElement[],
+  elementsMap: ElementsMap,
   {
     omitCenter,
     boundingBoxCorners,
@@ -169,7 +169,7 @@ export const getElementsCorners = (
   if (elements.length === 1) {
     const element = elements[0]
 
-    let [x1, y1, x2, y2, cx, cy] = getElementAbsoluteCoords(element)
+    let [x1, y1, x2, y2, cx, cy] = getElementAbsoluteCoords(element, elementsMap)
 
     if (dragOffset) {
       x1 += dragOffset.x
@@ -225,11 +225,12 @@ export const getElementsCorners = (
 const getReferenceElements = (
   elements: readonly NonDeletedExcalidrawElement[],
   selectedElements: NonDeletedExcalidrawElement[],
-  appState: AppState
+  appState: AppState,
+  elementsMap: ElementsMap
 ) => {
   const selectedFrames = selectedElements.filter((element) => isFrameLikeElement(element)).map((frame) => frame.id)
 
-  return getVisibleAndNonSelectedElements(elements, selectedElements, appState).filter(
+  return getVisibleAndNonSelectedElements(elements, selectedElements, appState, elementsMap).filter(
     (element) => !(element.frameId && selectedFrames.includes(element.frameId))
   )
 }
@@ -237,11 +238,12 @@ const getReferenceElements = (
 export const getVisibleGaps = (
   elements: readonly NonDeletedExcalidrawElement[],
   selectedElements: ExcalidrawElement[],
-  appState: AppState
+  appState: AppState,
+  elementsMap: ElementsMap
 ) => {
-  const referenceElements: ExcalidrawElement[] = getReferenceElements(elements, selectedElements, appState)
+  const referenceElements: ExcalidrawElement[] = getReferenceElements(elements, selectedElements, appState, elementsMap)
 
-  const referenceBounds = getMaximumGroups(referenceElements, arrayToMap(elements))
+  const referenceBounds = getMaximumGroups(referenceElements, elementsMap)
     .filter((elementsGroup) => !(elementsGroup.length === 1 && isBoundToContainer(elementsGroup[0])))
     .map((group) => getCommonBounds(group).map((bound) => round(bound)) as unknown as Bounds)
 
@@ -496,13 +498,13 @@ const getGapSnaps = (
 export const getReferenceSnapPoints = (
   elements: readonly NonDeletedExcalidrawElement[],
   selectedElements: ExcalidrawElement[],
-  appState: AppState
+  appState: AppState,
+  elementsMap: ElementsMap
 ) => {
-  const referenceElements = getReferenceElements(elements, selectedElements, appState)
-
-  return getMaximumGroups(referenceElements, arrayToMap(elements))
+  const referenceElements = getReferenceElements(elements, selectedElements, appState, elementsMap)
+  return getMaximumGroups(referenceElements, elementsMap)
     .filter((elementsGroup) => !(elementsGroup.length === 1 && isBoundToContainer(elementsGroup[0])))
-    .flatMap((elementGroup) => getElementsCorners(elementGroup))
+    .flatMap((elementGroup) => getElementsCorners(elementGroup, elementsMap))
 }
 
 const getPointSnaps = (
@@ -562,11 +564,13 @@ const getPointSnaps = (
 }
 
 export const snapDraggedElements = (
-  selectedElements: ExcalidrawElement[],
+  elements: ExcalidrawElement[],
   dragOffset: Vector2D,
   appState: AppState,
-  event: KeyboardModifiersObject
+  event: KeyboardModifiersObject,
+  elementsMap: ElementsMap
 ) => {
+  const selectedElements = getSelectedElements(elements, appState)
   if (!isSnappingEnabled({ appState, event, selectedElements }) || selectedElements.length === 0) {
     return {
       snapOffset: {
@@ -576,7 +580,6 @@ export const snapDraggedElements = (
       snapLines: []
     }
   }
-
   dragOffset.x = round(dragOffset.x)
   dragOffset.y = round(dragOffset.y)
   const nearestSnapsX: Snaps = []
@@ -587,7 +590,7 @@ export const snapDraggedElements = (
     y: snapDistance
   }
 
-  const selectionPoints = getElementsCorners(selectedElements, {
+  const selectionPoints = getElementsCorners(selectedElements, elementsMap, {
     dragOffset
   })
 
@@ -621,7 +624,7 @@ export const snapDraggedElements = (
 
   getPointSnaps(
     selectedElements,
-    getElementsCorners(selectedElements, {
+    getElementsCorners(selectedElements, elementsMap, {
       dragOffset: newDragOffset
     }),
     appState,
@@ -1047,7 +1050,8 @@ export const snapNewElement = (
   appState: AppState,
   event: KeyboardModifiersObject,
   origin: Vector2D,
-  dragOffset: Vector2D
+  dragOffset: Vector2D,
+  elementsMap: ElementsMap
 ) => {
   if (!isSnappingEnabled({ event, selectedElements: [draggingElement], appState })) {
     return {
@@ -1080,7 +1084,7 @@ export const snapNewElement = (
   nearestSnapsX.length = 0
   nearestSnapsY.length = 0
 
-  const corners = getElementsCorners([draggingElement], {
+  const corners = getElementsCorners([draggingElement], elementsMap, {
     boundingBoxCorners: true,
     omitCenter: true
   })
@@ -1099,7 +1103,8 @@ export const getSnapLinesAtPointer = (
   elements: readonly ExcalidrawElement[],
   appState: AppState,
   pointer: Vector2D,
-  event: KeyboardModifiersObject
+  event: KeyboardModifiersObject,
+  elementsMap: ElementsMap
 ) => {
   if (!isSnappingEnabled({ event, selectedElements: [], appState })) {
     return {
@@ -1108,7 +1113,7 @@ export const getSnapLinesAtPointer = (
     }
   }
 
-  const referenceElements = getVisibleAndNonSelectedElements(elements, [], appState)
+  const referenceElements = getVisibleAndNonSelectedElements(elements, [], appState, elementsMap)
 
   const snapDistance = getSnapDistance(appState.zoom.value)
 
@@ -1121,7 +1126,7 @@ export const getSnapLinesAtPointer = (
   const verticalSnapLines: PointerSnapLine[] = []
 
   for (const referenceElement of referenceElements) {
-    const corners = getElementsCorners([referenceElement])
+    const corners = getElementsCorners([referenceElement], elementsMap)
 
     for (const corner of corners) {
       const offsetX = corner[0] - pointer.x

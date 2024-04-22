@@ -189,6 +189,7 @@ const chartXLabels = (
         text: label.length > 8 ? `${label.slice(0, 5)}...` : label,
         x: x + index * (BAR_WIDTH + BAR_GAP) + BAR_GAP * 2,
         y: y + BAR_GAP / 2,
+        index: null,
         width: BAR_WIDTH,
         angle: 5.87,
         fontSize: 16,
@@ -212,6 +213,7 @@ const chartYLabels = (
     ...commonProps,
     x: x - BAR_GAP,
     y: y - BAR_GAP,
+    index: null,
     text: '0',
     textAlign: 'right'
   })
@@ -222,6 +224,7 @@ const chartYLabels = (
     ...commonProps,
     x: x - BAR_GAP,
     y: y - BAR_HEIGHT - minYLabel.height / 2,
+    index: null,
     text: Math.max(...spreadsheet.values).toLocaleString(),
     textAlign: 'right'
   })
@@ -244,6 +247,7 @@ const chartLines = (
     type: 'line',
     x,
     y,
+    index: null,
     startArrowhead: null,
     endArrowhead: null,
     width: chartWidth,
@@ -260,6 +264,7 @@ const chartLines = (
     type: 'line',
     x,
     y,
+    index: null,
     startArrowhead: null,
     endArrowhead: null,
     height: chartHeight,
@@ -276,6 +281,7 @@ const chartLines = (
     type: 'line',
     x,
     y: y - BAR_HEIGHT - BAR_GAP,
+    index: null,
     startArrowhead: null,
     endArrowhead: null,
     strokeStyle: 'dotted',
@@ -309,6 +315,7 @@ const chartBaseElements = (
         text: spreadsheet.title,
         x: x + chartWidth / 2,
         y: y - BAR_HEIGHT - BAR_GAP * 2 - DEFAULT_FONT_SIZE,
+        index: null,
         roundness: null,
         textAlign: 'center'
       })
@@ -322,6 +329,7 @@ const chartBaseElements = (
         type: 'rectangle',
         x,
         y: y - chartHeight,
+        index: null,
         width: chartWidth,
         height: chartHeight,
         strokeColor: COLOR_PALETTE.black,
@@ -353,6 +361,7 @@ const chartTypeBar = (spreadsheet: Spreadsheet, x: number, y: number): ChartElem
       type: 'rectangle',
       x: x + index * (BAR_WIDTH + BAR_GAP) + BAR_GAP,
       y: y - barHeight - BAR_GAP,
+      index: null,
       width: BAR_WIDTH,
       height: barHeight
     })
@@ -387,6 +396,7 @@ const chartTypeLine = (spreadsheet: Spreadsheet, x: number, y: number): ChartEle
     type: 'line',
     x: x + BAR_GAP + BAR_WIDTH / 2,
     y: y - BAR_GAP,
+    index: null,
     startArrowhead: null,
     endArrowhead: null,
     height: maxY - minY,
@@ -407,6 +417,7 @@ const chartTypeLine = (spreadsheet: Spreadsheet, x: number, y: number): ChartEle
       type: 'ellipse',
       x: x + cx + BAR_WIDTH / 2,
       y: y + cy - BAR_GAP * 2,
+      index: null,
       width: BAR_GAP,
       height: BAR_GAP
     })
@@ -422,6 +433,7 @@ const chartTypeLine = (spreadsheet: Spreadsheet, x: number, y: number): ChartEle
       type: 'line',
       x: x + cx + BAR_WIDTH / 2 + BAR_GAP / 2,
       y: y - cy,
+      index: null,
       startArrowhead: null,
       endArrowhead: null,
       height: cy,

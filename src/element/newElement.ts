@@ -108,7 +108,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     seed: rest.seed ?? randomInteger(),
     version: rest.version || 1,
     versionNonce: rest.versionNonce ?? 0,
-    isDeleted: false as const,
+    isDeleted: false,
     boundElements,
     updated: getUpdatedTimestamp(),
     link,

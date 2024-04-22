@@ -6,7 +6,7 @@ import { isFrameLikeElement, isInitializedImageElement } from './element/typeChe
 import { ExcalidrawElement, NonDeletedExcalidrawElement } from './element/types'
 import { getContainingFrame } from './frame'
 import { BinaryFiles } from './types'
-import { isMemberOf, isPromiseLike } from './utils'
+import { arrayToMap, isMemberOf, isPromiseLike } from './utils'
 
 type ElementsClipboard = {
   type: typeof EXPORT_DATA_TYPES.excalidrawClipboard
@@ -109,6 +109,7 @@ export const serializeAsClipboardJSON = ({
   elements: readonly NonDeletedExcalidrawElement[]
   files: BinaryFiles | null
 }) => {
+  const elementsMap = arrayToMap(elements)
   const framesToCopy = new Set(elements.filter((element) => isFrameLikeElement(element)))
   let foundFile = false
 
@@ -130,7 +131,7 @@ export const serializeAsClipboardJSON = ({
   const contents: ElementsClipboard = {
     type: EXPORT_DATA_TYPES.excalidrawClipboard,
     elements: elements.map((element) => {
-      if (getContainingFrame(element) && !framesToCopy.has(getContainingFrame(element)!)) {
+      if (getContainingFrame(element, elementsMap) && !framesToCopy.has(getContainingFrame(element, elementsMap)!)) {
         const copiedElement = deepCopyElement(element)
         mutateElement(copiedElement, {
           frameId: null
@@ -214,8 +215,7 @@ export const readSystemClipboard = async () => {
       return { 'text/plain': await navigator.clipboard?.readText() }
     }
   } catch (error: any) {
-    // @ts-ignore
-    if (navigator.clipboard?.read) {
+    if (await navigator.clipboard?.read()) {
       console.warn(
         `navigator.clipboard.readText() failed (${error.message}). Failling back to navigator.clipboard.read()`
       )
@@ -323,7 +323,9 @@ export const parseClipboard = async (event: ClipboardEvent, isPlainPaste = false
         programmaticAPI
       }
     }
-  } catch {}
+  } catch {
+    console.error('Error parsing clipboard data')
+  }
 
   return { text: parsedEventData.value }
 }
@@ -386,7 +388,7 @@ export const copyTextToSystemClipboard = async (text: string | null, clipboardEv
 
   // (3) if that fails, use document.execCommand
   if (!copyTextViaExecCommand(text)) {
-    throw new Error('Copy To System Clipboard Failed')
+    throw new Error('Error copying to clipboard.')
   }
 }
 

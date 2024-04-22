@@ -1,4 +1,5 @@
-import 'global-jsdom/register'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+require('global-jsdom/register')
 
 import { createCanvas } from '@napi-rs/canvas'
 
@@ -12,19 +13,15 @@ import {
   TEXT_ALIGN,
   VERTICAL_ALIGN
 } from '../constants'
-import { getSelectedElements } from '../scene'
 import { AppState } from '../types'
-import { ExtractSetType } from '../utility-types'
+import { ExtractSetType, MakeBrand } from '../utility-types'
 import { arrayToMap, getFontString, normalizeEOL } from '../utils'
 import { isTextElement } from '.'
-import { getElementAbsoluteCoords } from '.'
-import { isHittingElementNotConsideringBoundingBox } from './collision'
 import { resetOriginalContainerCache, updateOriginalContainerCache } from './containerCache'
 import { LinearElementEditor } from './linearElementEditor'
 import { mutateElement } from './mutateElement'
 import { MaybeTransformHandleType } from './transformHandles'
 import { isArrowElement, isBoundToContainer } from './typeChecks'
-import { isTextBindableContainer } from './typeChecks'
 import {
   ElementsMap,
   ExcalidrawElement,
@@ -49,15 +46,18 @@ const splitIntoLines = (text: string) => {
   return normalizeText(text).split('\n')
 }
 
-export const redrawTextBoundingBox = (textElement: ExcalidrawTextElement, container: ExcalidrawElement | null) => {
+export const redrawTextBoundingBox = (
+  textElement: ExcalidrawTextElement,
+  container: ExcalidrawElement | null,
+  elementsMap: ElementsMap
+) => {
   let maxWidth = undefined
   const boundTextUpdates = {
     x: textElement.x,
     y: textElement.y,
     text: textElement.text,
     width: textElement.width,
-    height: textElement.height,
-    baseline: textElement.baseline
+    height: textElement.height
   }
 
   boundTextUpdates.text = textElement.text
@@ -70,7 +70,6 @@ export const redrawTextBoundingBox = (textElement: ExcalidrawTextElement, contai
 
   boundTextUpdates.width = metrics.width
   boundTextUpdates.height = metrics.height
-  boundTextUpdates.baseline = metrics.baseline
 
   if (container) {
     const maxContainerHeight = getBoundTextMaxHeight(container, textElement as ExcalidrawTextElementWithContainer)
@@ -89,7 +88,7 @@ export const redrawTextBoundingBox = (textElement: ExcalidrawTextElement, contai
       ...textElement,
       ...boundTextUpdates
     } as ExcalidrawTextElementWithContainer
-    const { x, y } = computeBoundTextPosition(container, updatedTextElement)
+    const { x, y } = computeBoundTextPosition(container, updatedTextElement, elementsMap)
     boundTextUpdates.x = x
     boundTextUpdates.y = y
   }
@@ -155,7 +154,6 @@ export const handleBindTextResize = (
     const maxWidth = getBoundTextMaxWidth(container, textElement)
     const maxHeight = getBoundTextMaxHeight(container, textElement)
     let containerHeight = container.height
-    let nextBaseLine = textElement.baseline
     if (shouldMaintainAspectRatio || (transformHandleType !== 'n' && transformHandleType !== 's')) {
       if (text) {
         text = wrapText(textElement.originalText, getFontString(textElement), maxWidth)
@@ -163,7 +161,6 @@ export const handleBindTextResize = (
       const metrics = measureText(text, getFontString(textElement), textElement.lineHeight)
       nextHeight = metrics.height
       nextWidth = metrics.width
-      nextBaseLine = metrics.baseline
     }
     // increase height in case text element height exceeds
     if (nextHeight > maxHeight) {
@@ -185,22 +182,39 @@ export const handleBindTextResize = (
     mutateElement(textElement, {
       text,
       width: nextWidth,
-      height: nextHeight,
-      baseline: nextBaseLine
+      height: nextHeight
     })
 
     if (!isArrowElement(container)) {
-      mutateElement(textElement, computeBoundTextPosition(container, textElement))
+      mutateElement(textElement, computeBoundTextPosition(container, textElement, elementsMap))
     }
   }
 }
 
+/**
+ * Calculates vertical offset for a text with alphabetic baseline.
+ */
+export const getVerticalOffset = (
+  fontFamily: ExcalidrawTextElement['fontFamily'],
+  fontSize: ExcalidrawTextElement['fontSize'],
+  lineHeightPx: number
+) => {
+  const { unitsPerEm, ascender, descender } = FONT_METRICS[fontFamily] || FONT_METRICS[FONT_FAMILY.Helvetica]
+
+  const fontSizeEm = fontSize / unitsPerEm
+  const lineGap = lineHeightPx - fontSizeEm * ascender + fontSizeEm * descender
+
+  const verticalOffset = fontSizeEm * ascender + lineGap
+  return verticalOffset
+}
+
 export const computeBoundTextPosition = (
   container: ExcalidrawElement,
-  boundTextElement: ExcalidrawTextElementWithContainer
+  boundTextElement: ExcalidrawTextElementWithContainer,
+  elementsMap: ElementsMap
 ) => {
   if (isArrowElement(container)) {
-    return LinearElementEditor.getBoundTextElementPosition(container, boundTextElement)
+    return LinearElementEditor.getBoundTextElementPosition(container, boundTextElement, elementsMap)
   }
   const containerCoords = getContainerCoords(container)
   const maxContainerHeight = getBoundTextMaxHeight(container, boundTextElement)
@@ -581,16 +595,22 @@ export const getContainerCenter = (container: ExcalidrawElement, appState: AppSt
       y: container.y + container.height / 2
     }
   }
-  const points = LinearElementEditor.getPointsGlobalCoordinates(container)
+  const points = LinearElementEditor.getPointsGlobalCoordinates(container, elementsMap)
   if (points.length % 2 === 1) {
     const index = Math.floor(container.points.length / 2)
-    const midPoint = LinearElementEditor.getPointGlobalCoordinates(container, container.points[index])
+    const midPoint = LinearElementEditor.getPointGlobalCoordinates(container, container.points[index], elementsMap)
     return { x: midPoint[0], y: midPoint[1] }
   }
   const index = container.points.length / 2 - 1
   let midSegmentMidpoint = LinearElementEditor.getEditorMidPoints(container, elementsMap, appState)[index]
   if (!midSegmentMidpoint) {
-    midSegmentMidpoint = LinearElementEditor.getSegmentMidPoint(container, points[index], points[index + 1], index + 1)
+    midSegmentMidpoint = LinearElementEditor.getSegmentMidPoint(
+      container,
+      points[index],
+      points[index + 1],
+      index + 1,
+      elementsMap
+    )
   }
   return { x: midSegmentMidpoint[0], y: midSegmentMidpoint[1] }
 }
@@ -624,10 +644,11 @@ export const getTextElementAngle = (textElement: ExcalidrawTextElement, containe
 
 export const getBoundTextElementPosition = (
   container: ExcalidrawElement,
-  boundTextElement: ExcalidrawTextElementWithContainer
+  boundTextElement: ExcalidrawTextElementWithContainer,
+  elementsMap: ElementsMap
 ) => {
   if (isArrowElement(container)) {
-    return LinearElementEditor.getBoundTextElementPosition(container, boundTextElement)
+    return LinearElementEditor.getBoundTextElementPosition(container, boundTextElement, elementsMap)
   }
 }
 
@@ -656,38 +677,6 @@ export const suppportsHorizontalAlign = (selectedElements: NonDeletedExcalidrawE
 
     return isTextElement(element)
   })
-}
-
-export const getTextBindableContainerAtPosition = (
-  elements: readonly ExcalidrawElement[],
-  appState: AppState,
-  x: number,
-  y: number
-): ExcalidrawTextContainer | null => {
-  const selectedElements = getSelectedElements(elements, appState)
-  if (selectedElements.length === 1) {
-    return isTextBindableContainer(selectedElements[0], false) ? selectedElements[0] : null
-  }
-  let hitElement = null
-  // We need to to hit testing from front (end of the array) to back (beginning of the array)
-  for (let index = elements.length - 1; index >= 0; --index) {
-    if (elements[index].isDeleted) {
-      continue
-    }
-    const [x1, y1, x2, y2] = getElementAbsoluteCoords(elements[index])
-    if (
-      isArrowElement(elements[index]) &&
-      isHittingElementNotConsideringBoundingBox(elements[index], appState, null, [x, y])
-    ) {
-      hitElement = elements[index]
-      break
-    } else if (x1 < x && x < x2 && y1 < y && y < y2) {
-      hitElement = elements[index]
-      break
-    }
-  }
-
-  return isTextBindableContainer(hitElement, false) ? hitElement : null
 }
 
 const VALID_CONTAINER_TYPES = new Set(['rectangle', 'ellipse', 'diamond', 'arrow'])
@@ -798,4 +787,49 @@ export const getDefaultLineHeight = (fontFamily: FontFamilyValues) => {
     return DEFAULT_LINE_HEIGHT[fontFamily]
   }
   return DEFAULT_LINE_HEIGHT[DEFAULT_FONT_FAMILY]
+}
+
+/** OS/2 sTypoAscender, https://learn.microsoft.com/en-us/typography/opentype/spec/os2#stypoascender */
+type sTypoAscender = number & MakeBrand<'sTypoAscender'>
+
+/** OS/2 sTypoDescender, https://learn.microsoft.com/en-us/typography/opentype/spec/os2#stypodescender */
+type sTypoDescender = number & MakeBrand<'sTypoDescender'>
+
+/** head.unitsPerEm, usually either 1000 or 2048 */
+type unitsPerEm = number & MakeBrand<'unitsPerEm'>
+
+/**
+ * Hardcoded metrics for default fonts, read by https://opentype.js.org/font-inspector.html.
+ * For custom fonts, read these metrics from OS/2 table and extend this object.
+ *
+ * WARN: opentype does NOT open WOFF2 correctly, make sure to convert WOFF2 to TTF first.
+ */
+export const FONT_METRICS: Record<
+  number,
+  {
+    unitsPerEm: number
+    ascender: sTypoAscender
+    descender: sTypoDescender
+  }
+> = {
+  [FONT_FAMILY.Virgil]: {
+    unitsPerEm: 1000 as unitsPerEm,
+    ascender: 886 as sTypoAscender,
+    descender: -374 as sTypoDescender
+  },
+  [FONT_FAMILY.Helvetica]: {
+    unitsPerEm: 2048 as unitsPerEm,
+    ascender: 1577 as sTypoAscender,
+    descender: -471 as sTypoDescender
+  },
+  [FONT_FAMILY.Cascadia]: {
+    unitsPerEm: 2048 as unitsPerEm,
+    ascender: 1977 as sTypoAscender,
+    descender: -480 as sTypoDescender
+  },
+  [FONT_FAMILY.Assistant]: {
+    unitsPerEm: 1000 as unitsPerEm,
+    ascender: 1021 as sTypoAscender,
+    descender: -287 as sTypoDescender
+  }
 }

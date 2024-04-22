@@ -17,6 +17,7 @@ import {
   ExcalidrawFrameElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawGenericElement,
+  ExcalidrawIframeLikeElement,
   ExcalidrawImageElement,
   ExcalidrawLinearElement,
   ExcalidrawMagicFrameElement,
@@ -24,13 +25,15 @@ import {
   ExcalidrawTextElement,
   FileId,
   FontFamilyValues,
+  NonDeletedSceneElementsMap,
   TextAlign,
   VerticalAlign
 } from '../element/types'
+import { syncInvalidIndices } from '../fractionalIndex'
 import { getSizeFromPoints } from '../points'
 import { randomId } from '../random'
 import { MarkOptional } from '../utility-types'
-import { arrayToMap, assertNever, cloneJSON, getFontString } from '../utils'
+import { arrayToMap, assertNever, cloneJSON, getFontString, toBrandedType } from '../utils'
 
 export type ValidLinearElement = {
   type: 'arrow' | 'line'
@@ -120,7 +123,10 @@ export type ValidContainer = {
 } & ElementConstructorOpts
 
 export type ExcalidrawElementSkeleton =
-  | Extract<Exclude<ExcalidrawElement, ExcalidrawSelectionElement>, ExcalidrawFreeDrawElement>
+  | Extract<
+      Exclude<ExcalidrawElement, ExcalidrawSelectionElement>,
+      ExcalidrawIframeLikeElement | ExcalidrawFreeDrawElement
+    >
   | ({
       type: Extract<ExcalidrawLinearElement['type'], 'line'>
       x: number
@@ -181,7 +187,7 @@ const bindTextToContainer = (
     })
   })
 
-  redrawTextBoundingBox(textElement, container)
+  redrawTextBoundingBox(textElement, container, elementsMap)
   return [container, textElement] as const
 }
 
@@ -189,7 +195,8 @@ const bindLinearElementToElement = (
   linearElement: ExcalidrawArrowElement,
   start: ValidLinearElement['start'],
   end: ValidLinearElement['end'],
-  elementStore: ElementStore
+  elementStore: ElementStore,
+  elementsMap: NonDeletedSceneElementsMap
 ): {
   linearElement: ExcalidrawLinearElement
   startBoundElement?: ExcalidrawElement
@@ -265,7 +272,7 @@ const bindLinearElementToElement = (
         }
       }
 
-      bindLinearElement(linearElement, startBoundElement as ExcalidrawBindableElement, 'start')
+      bindLinearElement(linearElement, startBoundElement as ExcalidrawBindableElement, 'start', elementsMap)
     }
   }
   if (end) {
@@ -329,7 +336,16 @@ const bindLinearElementToElement = (
         }
       }
 
-      bindLinearElement(linearElement, endBoundElement as ExcalidrawBindableElement, 'end')
+      bindLinearElement(linearElement, endBoundElement as ExcalidrawBindableElement, 'end', elementsMap)
+    }
+  }
+
+  // Safe check to early return for single point
+  if (linearElement.points.length < 2) {
+    return {
+      linearElement,
+      startBoundElement,
+      endBoundElement
     }
   }
 
@@ -338,6 +354,7 @@ const bindLinearElementToElement = (
   const delta = 0.5
 
   const newPoints = cloneJSON(linearElement.points) as [number, number][]
+
   // left to right so shift the arrow towards right
   if (linearElement.points[endPointIndex][0] > linearElement.points[endPointIndex - 1][0]) {
     newPoints[0][0] = delta
@@ -380,8 +397,13 @@ class ElementStore {
 
     this.excalidrawElements.set(ele.id, ele)
   }
+
   getElements = () => {
-    return Array.from(this.excalidrawElements.values())
+    return syncInvalidIndices(Array.from(this.excalidrawElements.values()))
+  }
+
+  getElementsMap = () => {
+    return toBrandedType<NonDeletedSceneElementsMap>(arrayToMap(this.getElements()))
   }
 
   getElement = (id: string) => {
@@ -433,6 +455,7 @@ export const convertToExcalidrawElements = (
             [0, 0],
             [width, height]
           ],
+          index: null,
           ...element
         })
 
@@ -449,6 +472,7 @@ export const convertToExcalidrawElements = (
             [0, 0],
             [width, height]
           ],
+          index: null,
           ...element
         })
 
@@ -468,6 +492,7 @@ export const convertToExcalidrawElements = (
           height: metrics.height,
           fontFamily,
           fontSize,
+          index: null,
           ...element
         })
         break
@@ -476,6 +501,7 @@ export const convertToExcalidrawElements = (
         excalidrawElement = newImageElement({
           width: element?.width || DEFAULT_DIMENSION,
           height: element?.height || DEFAULT_DIMENSION,
+          index: null,
           ...element
         })
 
@@ -485,6 +511,7 @@ export const convertToExcalidrawElements = (
         excalidrawElement = newFrameElement({
           x: 0,
           y: 0,
+          index: null,
           ...element
         })
         break
@@ -493,11 +520,14 @@ export const convertToExcalidrawElements = (
         excalidrawElement = newMagicFrameElement({
           x: 0,
           y: 0,
+          index: null,
           ...element
         })
         break
       }
-      case 'freedraw': {
+      case 'freedraw':
+      case 'iframe':
+      case 'embeddable': {
         excalidrawElement = element
         break
       }
@@ -519,6 +549,7 @@ export const convertToExcalidrawElements = (
     }
   }
 
+  const elementsMap = elementStore.getElementsMap()
   // Add labels and arrow bindings
   for (const [id, element] of elementsWithIds) {
     const excalidrawElement = elementStore.getElement(id)!
@@ -529,11 +560,7 @@ export const convertToExcalidrawElements = (
       case 'diamond':
       case 'arrow': {
         if (element.label?.text) {
-          let [container, text] = bindTextToContainer(
-            excalidrawElement,
-            element?.label,
-            arrayToMap(elementStore.getElements())
-          )
+          const [container, text] = bindTextToContainer(excalidrawElement, element?.label, elementsMap)
           elementStore.add(container)
           elementStore.add(text)
 
@@ -556,9 +583,10 @@ export const convertToExcalidrawElements = (
               container as ExcalidrawArrowElement,
               originalStart,
               originalEnd,
-              elementStore
+              elementStore,
+              elementsMap
             )
-            container = linearElement
+            // container = linearElement
             elementStore.add(linearElement)
             elementStore.add(startBoundElement)
             elementStore.add(endBoundElement)
@@ -579,7 +607,8 @@ export const convertToExcalidrawElements = (
                 excalidrawElement as ExcalidrawArrowElement,
                 start,
                 end,
-                elementStore
+                elementStore,
+                elementsMap
               )
 
               elementStore.add(linearElement)

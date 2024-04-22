@@ -1,6 +1,6 @@
 import { ROUGHNESS } from '../constants'
 import { getArrowheadPoints, getDiamondPoints } from '../element'
-import { isEmbeddableElement, isLinearElement } from '../element/typeChecks'
+import { isEmbeddableElement, isIframeElement, isIframeLikeElement, isLinearElement } from '../element/typeChecks'
 import type {
   Arrowhead,
   ExcalidrawElement,
@@ -12,6 +12,7 @@ import { simplify } from '../externalLibrary/points-on-curve'
 import type { Drawable, Options } from '../externalLibrary/roughjs/core'
 import type { RoughGenerator } from '../externalLibrary/roughjs/generator'
 import { getCornerRadius, isPathALoop } from '../math'
+import { generateFreeDrawShape } from '../renderer/renderElement'
 import { EmbedsValidationStatus } from '../types'
 import { assertNever, isTransparent } from '../utils'
 import { canChangeRoundness } from './comparisons'
@@ -69,6 +70,7 @@ export const generateRoughOptions = (element: ExcalidrawElement, continuousPath 
 
   switch (element.type) {
     case 'rectangle':
+    case 'iframe':
     case 'embeddable':
     case 'diamond':
     case 'ellipse': {
@@ -101,6 +103,7 @@ const modifyIframeLikeForRoughOptions = (
   embedsValidationStatus: EmbedsValidationStatus | null
 ) => {
   if (
+    isIframeLikeElement(element) &&
     (isExporting || (isEmbeddableElement(element) && embedsValidationStatus?.get(element.id) !== true)) &&
     isTransparent(element.backgroundColor) &&
     isTransparent(element.strokeColor)
@@ -111,6 +114,12 @@ const modifyIframeLikeForRoughOptions = (
       backgroundColor: '#d3d3d3',
       fillStyle: 'solid'
     } as const
+  } else if (isIframeElement(element)) {
+    return {
+      ...element,
+      strokeColor: isTransparent(element.strokeColor) ? '#000000' : element.strokeColor,
+      backgroundColor: isTransparent(element.backgroundColor) ? '#f4f4f6' : element.backgroundColor
+    }
   }
   return element
 }
@@ -240,6 +249,7 @@ export const _generateElementShape = (
 ): Drawable | Drawable[] | null => {
   switch (element.type) {
     case 'rectangle':
+    case 'iframe':
     case 'embeddable': {
       let shape: ElementShapes[typeof element.type]
       // this is for rendering the stroke/bg of the embeddable, especially
@@ -250,9 +260,9 @@ export const _generateElementShape = (
         const h = element.height
         const r = getCornerRadius(Math.min(w, h), element)
         shape = generator.path(
-          `M ${r} 0 L ${w - r} 0 Q ${w} 0, ${w} ${r} L ${w} ${h - r} Q ${w} ${h}, ${
-            w - r
-          } ${h} L ${r} ${h} Q 0 ${h}, 0 ${h - r} L 0 ${r} Q 0 0, ${r} 0`,
+          `M ${r} 0 L ${w - r} 0 Q ${w} 0, ${w} ${r} L ${w} ${
+            h - r
+          } Q ${w} ${h}, ${w - r} ${h} L ${r} ${h} Q 0 ${h}, 0 ${h - r} L 0 ${r} Q 0 0, ${r} 0`,
           generateRoughOptions(modifyIframeLikeForRoughOptions(element, isExporting, embedsValidationStatus), true)
         )
       } else {
@@ -276,9 +286,9 @@ export const _generateElementShape = (
         const horizontalRadius = getCornerRadius(Math.abs(rightY - topY), element)
 
         shape = generator.path(
-          `M ${topX + verticalRadius} ${topY + horizontalRadius} L ${rightX - verticalRadius} ${
-            rightY - horizontalRadius
-          }
+          `M ${topX + verticalRadius} ${topY + horizontalRadius} L ${
+            rightX - verticalRadius
+          } ${rightY - horizontalRadius}
             C ${rightX} ${rightY}, ${rightX} ${rightY}, ${rightX - verticalRadius} ${rightY + horizontalRadius}
             L ${bottomX + verticalRadius} ${bottomY - horizontalRadius}
             C ${bottomX} ${bottomY}, ${bottomX} ${bottomY}, ${bottomX - verticalRadius} ${bottomY - horizontalRadius}
@@ -370,10 +380,14 @@ export const _generateElementShape = (
     }
     case 'freedraw': {
       let shape: ElementShapes[typeof element.type]
+      generateFreeDrawShape(element)
 
       if (isPathALoop(element.points)) {
         // generate rough polygon to fill freedraw shape
-        const simplifiedPoints = simplify(element.points, 0.75)
+        const simplifiedPoints = simplify(
+          element.points.map(([x, y]) => [x, y]),
+          0.75
+        )
         shape = generator.curve(simplifiedPoints as [number, number][], {
           ...generateRoughOptions(element),
           stroke: 'none'

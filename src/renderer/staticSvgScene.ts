@@ -1,5 +1,3 @@
-import { Drawable } from 'roughjs/bin/core'
-import { RoughSVG } from 'roughjs/bin/svg'
 import { FRAME_STYLE, MAX_DECIMALS_FOR_SVG_EXPORT, MIME_TYPES, SVG_NS } from '../constants'
 import { normalizeLink, toValidURL } from '../data/url'
 import { getElementAbsoluteCoords } from '../element'
@@ -8,12 +6,14 @@ import { LinearElementEditor } from '../element/linearElementEditor'
 import { getBoundTextElement, getContainerElement, getLineHeightInPx, getVerticalOffset } from '../element/textElement'
 import { isArrowElement, isIframeLikeElement, isInitializedImageElement, isTextElement } from '../element/typeChecks'
 import { ExcalidrawElement, ExcalidrawTextElementWithContainer, NonDeletedExcalidrawElement } from '../element/types'
+import { Drawable } from '../externalLibrary/roughjs/core'
+import { RoughSVG } from '../externalLibrary/roughjs/svg'
 import { getContainingFrame } from '../frame'
 import { getCornerRadius, isPathALoop } from '../math'
 import { ShapeCache } from '../scene/ShapeCache'
 import { RenderableElementsMap, SVGRenderConfig } from '../scene/types'
 import { AppState, BinaryFiles } from '../types'
-import { getFontFamilyString, isRTL, isTestEnv } from '../utils'
+import { getFontFamilyString, isRTL } from '../utils'
 import { getFreeDrawSvgPath, IMAGE_INVERT_FILTER } from './renderElement'
 
 const roughSVGDrawWithPrecision = (rsvg: RoughSVG, drawable: Drawable, precision?: number) => {
@@ -93,7 +93,8 @@ const renderElementToSvg = (
   }
 
   const addToRoot = (node: SVGElement, element: ExcalidrawElement) => {
-    if (isTestEnv()) {
+    // eslint-disable-next-line no-constant-condition
+    if (false) {
       node.setAttribute('data-id', element.id)
     }
     root.appendChild(node)
@@ -424,8 +425,7 @@ const renderElementToSvg = (
 
         addToRoot(g || node, element)
       } else {
-        // @ts-ignore
-        throw new Error(`Unimplemented type ${element.type}`)
+        throw new Error(`Unimplemented type ${element}`)
       }
     }
   }

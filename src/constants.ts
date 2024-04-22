@@ -3,6 +3,11 @@ import { ExcalidrawElement, FontFamilyValues } from './element/types'
 
 export const APP_NAME = 'Excalidraw'
 
+export const COLOR_WHITE = '#ffffff'
+export const COLOR_CHARCOAL_BLACK = '#1e1e1e'
+// keep this in sync with CSS
+export const COLOR_VOICE_CALL = '#a2f1a6'
+
 export const DRAGGING_THRESHOLD = 10 // px
 export const LINE_CONFIRM_THRESHOLD = 8 // px
 export const ELEMENT_SHIFT_TRANSLATE_AMOUNT = 5

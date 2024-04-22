@@ -1,34 +1,24 @@
-import {
-  getElementAbsoluteCoords,
-  OMIT_SIDES_FOR_MULTIPLE_ELEMENTS,
-  getTransformHandlesFromCoords,
-  getTransformHandles,
-  getCommonBounds
-} from '../element'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-case-declarations */
+import oc from 'open-color'
 
-import { roundRect } from '../renderer/roundRect'
-
-import { getScrollBars, SCROLLBAR_COLOR, SCROLLBAR_WIDTH } from '../scene/scrollbars'
-
-import { renderSelectionElement } from '../renderer/renderElement'
 import { getClientColor, renderRemoteCursors } from '../clients'
-import { isSelectedViaGroup, getSelectedGroupIds, getElementsInGroup, selectGroupsFromGivenElements } from '../groups'
+import { DEFAULT_TRANSFORM_HANDLE_SPACING, FRAME_STYLE } from '../constants'
+import {
+  getCommonBounds,
+  getElementAbsoluteCoords,
+  getTransformHandles,
+  getTransformHandlesFromCoords,
+  OMIT_SIDES_FOR_MULTIPLE_ELEMENTS
+} from '../element'
+import { maxBindingGap, SuggestedBinding, SuggestedPointBinding } from '../element/binding'
+import { LinearElementEditor } from '../element/linearElementEditor'
 import {
   OMIT_SIDES_FOR_FRAME,
   shouldShowBoundingBox,
   TransformHandles,
   TransformHandleType
 } from '../element/transformHandles'
-import { arrayToMap, throttleRAF } from '../utils'
-import { InteractiveCanvasAppState, Point } from '../types'
-import { DEFAULT_TRANSFORM_HANDLE_SPACING, FRAME_STYLE } from '../constants'
-
-import { renderSnaps } from '../renderer/renderSnaps'
-
-import { maxBindingGap, SuggestedBinding, SuggestedPointBinding } from '../element/binding'
-import { LinearElementEditor } from '../element/linearElementEditor'
-import { bootstrapCanvas, fillCircle, getNormalizedCanvasDimensions } from './helpers'
-import oc from 'open-color'
 import { isFrameLikeElement, isLinearElement } from '../element/typeChecks'
 import {
   ElementsMap,
@@ -39,7 +29,15 @@ import {
   GroupId,
   NonDeleted
 } from '../element/types'
+import { getElementsInGroup, getSelectedGroupIds, isSelectedViaGroup, selectGroupsFromGivenElements } from '../groups'
+import { renderSelectionElement } from '../renderer/renderElement'
+import { renderSnaps } from '../renderer/renderSnaps'
+import { roundRect } from '../renderer/roundRect'
+import { getScrollBars, SCROLLBAR_COLOR, SCROLLBAR_WIDTH } from '../scene/scrollbars'
 import { InteractiveCanvasRenderConfig, InteractiveSceneRenderConfig, RenderableElementsMap } from '../scene/types'
+import { InteractiveCanvasAppState, Point } from '../types'
+import { arrayToMap, throttleRAF } from '../utils'
+import { bootstrapCanvas, fillCircle, getNormalizedCanvasDimensions } from './helpers'
 
 const renderLinearElementPointHighlight = (
   context: CanvasRenderingContext2D,

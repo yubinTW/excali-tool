@@ -1,6 +1,7 @@
 import OpenColor from 'open-color'
 
-import { MIME_TYPES, THEME } from './constants'
+import { isEraserActive, isHandToolActive } from './appState'
+import { CURSOR_TYPE, MIME_TYPES, THEME } from './constants'
 import { AppState, DataURL } from './types'
 
 const laserPointerCursorSVG_tag = `<svg viewBox="0 0 24 24" stroke-width="1" width="28" height="28" xmlns="http://www.w3.org/2000/svg">`
@@ -52,4 +53,31 @@ export const setEraserCursor = (interactiveCanvas: HTMLCanvasElement | null, the
   }
 
   setCursor(interactiveCanvas, `url(${previewDataURL}) ${cursorImageSizePx / 2} ${cursorImageSizePx / 2}, auto`)
+}
+
+export const setCursorForShape = (
+  interactiveCanvas: HTMLCanvasElement | null,
+  appState: Pick<AppState, 'activeTool' | 'theme'>
+) => {
+  if (!interactiveCanvas) {
+    return
+  }
+  if (appState.activeTool.type === 'selection') {
+    resetCursor(interactiveCanvas)
+  } else if (isHandToolActive(appState)) {
+    interactiveCanvas.style.cursor = CURSOR_TYPE.GRAB
+  } else if (isEraserActive(appState)) {
+    setEraserCursor(interactiveCanvas, appState.theme)
+    // do nothing if image tool is selected which suggests there's
+    // a image-preview set as the cursor
+    // Ignore custom type as well and let host decide
+  } else if (appState.activeTool.type === 'laser') {
+    const url =
+      appState.theme === THEME.LIGHT ? laserPointerCursorDataURL_lightMode : laserPointerCursorDataURL_darkMode
+    interactiveCanvas.style.cursor = `url(${url}), auto`
+  } else if (!['image', 'custom'].includes(appState.activeTool.type)) {
+    interactiveCanvas.style.cursor = CURSOR_TYPE.CROSSHAIR
+  } else if (appState.activeTool.type !== 'image') {
+    interactiveCanvas.style.cursor = CURSOR_TYPE.AUTO
+  }
 }

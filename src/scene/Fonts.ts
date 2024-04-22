@@ -52,7 +52,11 @@ export class Fonts {
         ShapeCache.delete(element)
         didUpdate = true
         return newElementWith(element, {
-          ...refreshTextDimensions(element, getContainerElement(element, this.scene.getElementsMapIncludingDeleted()))
+          ...refreshTextDimensions(
+            element,
+            getContainerElement(element, this.scene.getNonDeletedElementsMap()),
+            this.scene.getNonDeletedElementsMap()
+          )
         })
       }
       return element

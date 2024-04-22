@@ -387,7 +387,7 @@ export type Device = Readonly<{
   isTouchScreen: boolean
 }>
 
-type FrameNameBounds = {
+export type FrameNameBounds = {
   x: number
   y: number
   width: number

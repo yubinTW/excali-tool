@@ -4,7 +4,7 @@ import { InteractiveCanvasAppState, Zoom } from '../types'
 import { isTextElement } from '.'
 import { Bounds, getElementAbsoluteCoords } from './bounds'
 import { isFrameLikeElement, isLinearElement } from './typeChecks'
-import { ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
+import { ElementsMap, ExcalidrawElement, NonDeletedExcalidrawElement, PointerType } from './types'
 
 export type TransformHandleDirection = 'n' | 's' | 'w' | 'e' | 'nw' | 'ne' | 'sw' | 'se'
 
@@ -211,6 +211,8 @@ export const getTransformHandlesFromCoords = (
 export const getTransformHandles = (
   element: ExcalidrawElement,
   zoom: Zoom,
+  elementsMap: ElementsMap,
+
   pointerType: PointerType = 'mouse'
 ): TransformHandles => {
   // so that when locked element is selected (especially when you toggle lock
@@ -248,7 +250,7 @@ export const getTransformHandles = (
     ? DEFAULT_TRANSFORM_HANDLE_SPACING + 8
     : DEFAULT_TRANSFORM_HANDLE_SPACING
   return getTransformHandlesFromCoords(
-    getElementAbsoluteCoords(element, true),
+    getElementAbsoluteCoords(element, elementsMap, true),
     element.angle,
     zoom,
     pointerType,

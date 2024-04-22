@@ -1,17 +1,16 @@
+import { EXTERNAL_LINK_IMG, getLinkHandleFromCoords } from '../components/hyperlink/helpers'
 import { FRAME_STYLE } from '../constants'
 import { getElementAbsoluteCoords } from '../element'
-
-import { elementOverlapsWithFrame, getTargetFrame, isElementInFrame } from '../frame'
-import { isEmbeddableElement, isIframeLikeElement, isTextElement } from '../element/typeChecks'
-import { renderElement } from '../renderer/renderElement'
 import { createPlaceholderEmbeddableLabel } from '../element/embeddable'
-import { StaticCanvasAppState, Zoom } from '../types'
-import { ElementsMap, ExcalidrawFrameLikeElement, NonDeletedExcalidrawElement } from '../element/types'
-import { StaticCanvasRenderConfig, StaticSceneRenderConfig } from '../scene/types'
-import { EXTERNAL_LINK_IMG, getLinkHandleFromCoords } from '../components/hyperlink/helpers'
-import { bootstrapCanvas, getNormalizedCanvasDimensions } from './helpers'
-import { throttleRAF } from '../utils'
 import { getBoundTextElement } from '../element/textElement'
+import { isEmbeddableElement, isIframeLikeElement, isTextElement } from '../element/typeChecks'
+import { ElementsMap, ExcalidrawFrameLikeElement, NonDeletedExcalidrawElement } from '../element/types'
+import { elementOverlapsWithFrame, getTargetFrame, isElementInFrame } from '../frame'
+import { renderElement } from '../renderer/renderElement'
+import { StaticCanvasRenderConfig, StaticSceneRenderConfig } from '../scene/types'
+import { StaticCanvasAppState, Zoom } from '../types'
+import { throttleRAF } from '../utils'
+import { bootstrapCanvas, getNormalizedCanvasDimensions } from './helpers'
 
 const strokeGrid = (
   context: CanvasRenderingContext2D,

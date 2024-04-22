@@ -1,47 +1,47 @@
-import {
-  ExcalidrawElement,
-  ExcalidrawTextElement,
-  NonDeletedExcalidrawElement,
-  ExcalidrawFreeDrawElement,
-  ExcalidrawImageElement,
-  ExcalidrawTextElementWithContainer,
-  ExcalidrawFrameLikeElement,
-  NonDeletedSceneElementsMap,
-  ElementsMap
-} from '../element/types'
-import {
-  isTextElement,
-  isLinearElement,
-  isFreeDrawElement,
-  isInitializedImageElement,
-  isArrowElement,
-  hasBoundTextElement,
-  isMagicFrameElement
-} from '../element/typeChecks'
-import { getElementAbsoluteCoords } from '../element/bounds'
-import type { RoughCanvas } from 'roughjs/bin/canvas'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { getStroke, StrokeOptions } from 'perfect-freehand'
 
-import { StaticCanvasRenderConfig, RenderableElementsMap } from '../scene/types'
-import { distance, getFontString, isRTL } from '../utils'
-import { getCornerRadius, isRightAngle } from '../math'
-import rough from 'roughjs/bin/rough'
-import { AppState, StaticCanvasAppState, Zoom, InteractiveCanvasAppState, ElementsPendingErasure } from '../types'
 import { getDefaultAppState } from '../appState'
 import { BOUND_TEXT_PADDING, ELEMENT_READY_TO_ERASE_OPACITY, FRAME_STYLE, MIME_TYPES, THEME } from '../constants'
-import { getStroke, StrokeOptions } from 'perfect-freehand'
+import { getElementAbsoluteCoords } from '../element/bounds'
+import { LinearElementEditor } from '../element/linearElementEditor'
 import {
   getBoundTextElement,
+  getBoundTextMaxHeight,
+  getBoundTextMaxWidth,
   getContainerCoords,
   getContainerElement,
   getLineHeightInPx,
-  getBoundTextMaxHeight,
-  getBoundTextMaxWidth,
   getVerticalOffset
 } from '../element/textElement'
-import { LinearElementEditor } from '../element/linearElementEditor'
-
+import {
+  hasBoundTextElement,
+  isArrowElement,
+  isFreeDrawElement,
+  isInitializedImageElement,
+  isLinearElement,
+  isMagicFrameElement,
+  isTextElement
+} from '../element/typeChecks'
+import {
+  ElementsMap,
+  ExcalidrawElement,
+  ExcalidrawFrameLikeElement,
+  ExcalidrawFreeDrawElement,
+  ExcalidrawImageElement,
+  ExcalidrawTextElement,
+  ExcalidrawTextElementWithContainer,
+  NonDeletedExcalidrawElement,
+  NonDeletedSceneElementsMap
+} from '../element/types'
+import type { RoughCanvas } from '../externalLibrary/roughjs/canvas'
+import rough from '../externalLibrary/roughjs/rough'
 import { getContainingFrame } from '../frame'
+import { getCornerRadius, isRightAngle } from '../math'
 import { ShapeCache } from '../scene/ShapeCache'
+import { RenderableElementsMap, StaticCanvasRenderConfig } from '../scene/types'
+import { AppState, ElementsPendingErasure, InteractiveCanvasAppState, StaticCanvasAppState, Zoom } from '../types'
+import { distance, getFontString, isRTL } from '../utils'
 
 // using a stronger invert (100% vs our regular 93%) and saturate
 // as a temp hack to make images in dark theme look closer to original
@@ -470,7 +470,7 @@ const drawElementFromCanvas = (
       elementWithCanvas.canvas!.height / elementWithCanvas.scale
     )
 
-    if (import.meta.env.VITE_APP_DEBUG_ENABLE_TEXT_CONTAINER_BOUNDING_BOX === 'true' && hasBoundTextElement(element)) {
+    if (hasBoundTextElement(element)) {
       const textElement = getBoundTextElement(element, allElementsMap) as ExcalidrawTextElementWithContainer
       const coords = getContainerCoords(element)
       context.strokeStyle = '#c92a2a'
@@ -718,7 +718,6 @@ export const renderElement = (
       break
     }
     default: {
-      // @ts-ignore
       throw new Error(`Unimplemented type ${element.type}`)
     }
   }
