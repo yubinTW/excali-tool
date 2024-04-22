@@ -66,7 +66,7 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
         }
       }
 
-      (element as any)[key] = value
+      ;(element as any)[key] = value
       didChange = true
     }
   }

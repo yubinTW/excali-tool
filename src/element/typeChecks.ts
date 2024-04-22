@@ -10,6 +10,8 @@ import {
   ExcalidrawFrameElement,
   ExcalidrawFrameLikeElement,
   ExcalidrawFreeDrawElement,
+  ExcalidrawIframeElement,
+  ExcalidrawIframeLikeElement,
   ExcalidrawImageElement,
   ExcalidrawLinearElement,
   ExcalidrawMagicFrameElement,
@@ -34,6 +36,14 @@ export const isEmbeddableElement = (
   element: ExcalidrawElement | null | undefined
 ): element is ExcalidrawEmbeddableElement => {
   return !!element && element.type === 'embeddable'
+}
+
+export const isIframeElement = (element: ExcalidrawElement | null): element is ExcalidrawIframeElement => {
+  return !!element && element.type === 'iframe'
+}
+
+export const isIframeLikeElement = (element: ExcalidrawElement | null): element is ExcalidrawIframeLikeElement => {
+  return !!element && (element.type === 'iframe' || element.type === 'embeddable')
 }
 
 export const isTextElement = (element: ExcalidrawElement | null): element is ExcalidrawTextElement => {
@@ -96,6 +106,7 @@ export const isBindableElement = (
       element.type === 'diamond' ||
       element.type === 'ellipse' ||
       element.type === 'image' ||
+      element.type === 'iframe' ||
       element.type === 'embeddable' ||
       element.type === 'frame' ||
       element.type === 'magicframe' ||
@@ -126,6 +137,7 @@ export const isExcalidrawElement = (element: any): element is ExcalidrawElement 
     case 'text':
     case 'diamond':
     case 'rectangle':
+    case 'iframe':
     case 'embeddable':
     case 'ellipse':
     case 'arrow':

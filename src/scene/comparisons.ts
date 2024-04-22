@@ -1,8 +1,10 @@
-import { NonDeletedExcalidrawElement } from '../element/types'
+import { isIframeElement } from '../element/typeChecks'
+import { ExcalidrawIframeElement, NonDeletedExcalidrawElement } from '../element/types'
 import { ElementOrToolType } from '../types'
 
 export const hasBackground = (type: ElementOrToolType) =>
   type === 'rectangle' ||
+  type === 'iframe' ||
   type === 'embeddable' ||
   type === 'ellipse' ||
   type === 'diamond' ||
@@ -13,6 +15,7 @@ export const hasStrokeColor = (type: ElementOrToolType) => type !== 'image' && t
 
 export const hasStrokeWidth = (type: ElementOrToolType) =>
   type === 'rectangle' ||
+  type === 'iframe' ||
   type === 'embeddable' ||
   type === 'ellipse' ||
   type === 'diamond' ||
@@ -22,6 +25,7 @@ export const hasStrokeWidth = (type: ElementOrToolType) =>
 
 export const hasStrokeStyle = (type: ElementOrToolType) =>
   type === 'rectangle' ||
+  type === 'iframe' ||
   type === 'embeddable' ||
   type === 'ellipse' ||
   type === 'diamond' ||
@@ -30,6 +34,7 @@ export const hasStrokeStyle = (type: ElementOrToolType) =>
 
 export const canChangeRoundness = (type: ElementOrToolType) =>
   type === 'rectangle' ||
+  type === 'iframe' ||
   type === 'embeddable' ||
   type === 'arrow' ||
   type === 'line' ||
@@ -58,4 +63,27 @@ export const getElementAtPosition = (
   }
 
   return hitElement
+}
+
+export const getElementsAtPosition = (
+  elements: readonly NonDeletedExcalidrawElement[],
+  isAtPositionFn: (element: NonDeletedExcalidrawElement) => boolean
+) => {
+  const iframeLikes: ExcalidrawIframeElement[] = []
+  // The parameter elements comes ordered from lower z-index to higher.
+  // We want to preserve that order on the returned array.
+  // Exception being embeddables which should be on top of everything else in
+  // terms of hit testing.
+  const elsAtPos = elements.filter((element) => {
+    const hit = !element.isDeleted && isAtPositionFn(element)
+    if (hit) {
+      if (isIframeElement(element)) {
+        iframeLikes.push(element)
+        return false
+      }
+      return true
+    }
+    return false
+  })
+  return elsAtPos.concat(iframeLikes)
 }

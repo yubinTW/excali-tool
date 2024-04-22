@@ -18,6 +18,7 @@ import { bumpVersion, newElementWith } from './mutateElement'
 import { getBoundTextMaxWidth, getDefaultLineHeight, measureText, normalizeText, wrapText } from './textElement'
 import {
   Arrowhead,
+  ElementsMap,
   ExcalidrawElement,
   ExcalidrawEmbeddableElement,
   ExcalidrawFrameElement,
@@ -76,6 +77,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     angle = 0,
     groupIds = [],
     frameId = null,
+    index = null,
     roundness = null,
     boundElements = null,
     link = null,
@@ -101,6 +103,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     opacity,
     groupIds,
     frameId,
+    index,
     roundness,
     seed: rest.seed ?? randomInteger(),
     version: rest.version || 1,
@@ -225,19 +228,15 @@ export const newTextElement = (
 
 const getAdjustedDimensions = (
   element: ExcalidrawTextElement,
+  elementsMap: ElementsMap,
   nextText: string
 ): {
   x: number
   y: number
   width: number
   height: number
-  baseline: number
 } => {
-  const {
-    width: nextWidth,
-    height: nextHeight,
-    baseline: nextBaseline
-  } = measureText(nextText, getFontString(element), element.lineHeight)
+  const { width: nextWidth, height: nextHeight } = measureText(nextText, getFontString(element), element.lineHeight)
   const { textAlign, verticalAlign } = element
   let x: number
   let y: number
@@ -251,7 +250,7 @@ const getAdjustedDimensions = (
     x = element.x - offsets.x
     y = element.y - offsets.y
   } else {
-    const [x1, y1, x2, y2] = getElementAbsoluteCoords(element)
+    const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap)
 
     const [nextX1, nextY1, nextX2, nextY2] = getResizedElementAbsoluteCoords(element, nextWidth, nextHeight, false)
     const deltaX1 = (x1 - nextX1) / 2
@@ -278,7 +277,6 @@ const getAdjustedDimensions = (
   return {
     width: nextWidth,
     height: nextHeight,
-    baseline: nextBaseline,
     x: Number.isFinite(x) ? x : element.x,
     y: Number.isFinite(y) ? y : element.y
   }
@@ -287,6 +285,7 @@ const getAdjustedDimensions = (
 export const refreshTextDimensions = (
   textElement: ExcalidrawTextElement,
   container: ExcalidrawTextContainer | null,
+  elementsMap: ElementsMap,
   text = textElement.text
 ) => {
   if (textElement.isDeleted) {
@@ -295,14 +294,16 @@ export const refreshTextDimensions = (
   if (container) {
     text = wrapText(text, getFontString(textElement), getBoundTextMaxWidth(container, textElement))
   }
-  const dimensions = getAdjustedDimensions(textElement, text)
+  const dimensions = getAdjustedDimensions(textElement, elementsMap, text)
   return { text, ...dimensions }
 }
 
 export const updateTextElement = (
   textElement: ExcalidrawTextElement,
   container: ExcalidrawTextContainer | null,
+  elementsMap: ElementsMap,
   {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     text,
     isDeleted,
     originalText
@@ -315,7 +316,7 @@ export const updateTextElement = (
   return newElementWith(textElement, {
     originalText,
     isDeleted: isDeleted ?? textElement.isDeleted,
-    ...refreshTextDimensions(textElement, container, originalText)
+    ...refreshTextDimensions(textElement, container, elementsMap, originalText)
   })
 }
 
@@ -393,6 +394,7 @@ const _deepCopyElement = (val: any, depth: number = 0) => {
   if (objectType === '[object Object]') {
     const tmp = typeof val.constructor === 'function' ? Object.create(Object.getPrototypeOf(val)) : {}
     for (const key in val) {
+      // eslint-disable-next-line no-prototype-builtins
       if (val.hasOwnProperty(key)) {
         // don't copy non-serializable objects like these caches. They'll be
         // populated when the element is rendered.
@@ -412,13 +414,6 @@ const _deepCopyElement = (val: any, depth: number = 0) => {
       arr[k] = _deepCopyElement(val[k], depth + 1)
     }
     return arr
-  }
-
-  // we're not cloning non-array & non-plain-object objects because we
-  // don't support them on excalidraw elements yet. If we do, we need to make
-  // sure we start cloning them, so let's warn about it.
-  if (objectType !== '[object Object]' && objectType !== '[object Array]' && objectType.startsWith('[object ')) {
-    console.warn(`_deepCloneElement: unexpected object type ${objectType}. This value will not be cloned!`)
   }
 
   return val

@@ -2,6 +2,7 @@ export {
   canChangeRoundness,
   canHaveArrowheads,
   getElementAtPosition,
+  getElementsAtPosition,
   hasBackground,
   hasStrokeStyle,
   hasStrokeWidth
@@ -9,6 +10,7 @@ export {
 export { calculateScrollCenter } from './scroll'
 export {
   getCommonAttributeOfSelectedElements,
+  getElementsWithinSelection,
   getSelectedElements,
   getTargetElements,
   isSomeElementSelected

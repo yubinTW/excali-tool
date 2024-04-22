@@ -420,3 +420,5 @@ export type JSONValue = string | number | boolean | null | object
 export type EmbedsValidationStatus = Map<string, boolean>
 
 export type ElementsPendingErasure = Set<ExcalidrawElement['id']>
+
+export type PointerDownState = any

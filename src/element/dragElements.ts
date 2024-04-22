@@ -1,8 +1,105 @@
-import { AppState } from '../types'
-import { getCommonBounds } from './bounds'
+/* eslint-disable no-extra-semi */
+import { getGridPoint } from '../math'
+import Scene from '../scene/Scene'
+import { AppState, PointerDownState } from '../types'
+import { updateBoundElements } from './binding'
+import { Bounds, getCommonBounds } from './bounds'
 import { mutateElement } from './mutateElement'
 import { getPerfectElementSize } from './sizeHelpers'
+import { getBoundTextElement } from './textElement'
+import { isArrowElement, isFrameLikeElement } from './typeChecks'
 import { NonDeletedExcalidrawElement } from './types'
+
+export const dragSelectedElements = (
+  pointerDownState: PointerDownState,
+  selectedElements: NonDeletedExcalidrawElement[],
+  offset: { x: number; y: number },
+  appState: AppState,
+  scene: Scene,
+  snapOffset: {
+    x: number
+    y: number
+  },
+  gridSize: AppState['gridSize']
+) => {
+  // we do not want a frame and its elements to be selected at the same time
+  // but when it happens (due to some bug), we want to avoid updating element
+  // in the frame twice, hence the use of set
+  const elementsToUpdate = new Set<NonDeletedExcalidrawElement>(selectedElements)
+  const frames = selectedElements.filter((e) => isFrameLikeElement(e)).map((f) => f.id)
+
+  if (frames.length > 0) {
+    for (const element of scene.getNonDeletedElements()) {
+      if (element.frameId !== null && frames.includes(element.frameId)) {
+        elementsToUpdate.add(element)
+      }
+    }
+  }
+
+  const commonBounds = getCommonBounds(
+    Array.from(elementsToUpdate).map((el) => pointerDownState.originalElements.get(el.id) ?? el)
+  )
+  const adjustedOffset = calculateOffset(commonBounds, offset, snapOffset, gridSize)
+
+  elementsToUpdate.forEach((element) => {
+    updateElementCoords(pointerDownState, element, adjustedOffset)
+    if (
+      // skip arrow labels since we calculate its position during render
+      !isArrowElement(element)
+    ) {
+      const textElement = getBoundTextElement(element, scene.getNonDeletedElementsMap())
+      if (textElement) {
+        updateElementCoords(pointerDownState, textElement, adjustedOffset)
+      }
+    }
+    updateBoundElements(element, scene.getElementsMapIncludingDeleted(), {
+      simultaneouslyUpdated: Array.from(elementsToUpdate)
+    })
+  })
+}
+
+const calculateOffset = (
+  commonBounds: Bounds,
+  dragOffset: { x: number; y: number },
+  snapOffset: { x: number; y: number },
+  gridSize: AppState['gridSize']
+): { x: number; y: number } => {
+  const [x, y] = commonBounds
+  let nextX = x + dragOffset.x + snapOffset.x
+  let nextY = y + dragOffset.y + snapOffset.y
+
+  if (snapOffset.x === 0 || snapOffset.y === 0) {
+    const [nextGridX, nextGridY] = getGridPoint(x + dragOffset.x, y + dragOffset.y, gridSize)
+
+    if (snapOffset.x === 0) {
+      nextX = nextGridX
+    }
+
+    if (snapOffset.y === 0) {
+      nextY = nextGridY
+    }
+  }
+  return {
+    x: nextX - x,
+    y: nextY - y
+  }
+}
+
+const updateElementCoords = (
+  pointerDownState: PointerDownState,
+  element: NonDeletedExcalidrawElement,
+  dragOffset: { x: number; y: number }
+) => {
+  const originalElement = pointerDownState.originalElements.get(element.id) ?? element
+
+  const nextX = originalElement.x + dragOffset.x
+  const nextY = originalElement.y + dragOffset.y
+
+  mutateElement(element, {
+    x: nextX,
+    y: nextY
+  })
+}
 
 export const getDragOffsetXY = (
   selectedElements: NonDeletedExcalidrawElement[],
@@ -40,9 +137,9 @@ export const dragNewElement = (
       // (originX, originY), we use ONLY width or height to control size increase.
       // This allows the cursor to always "stick" to one of the sides of the bounding box.
       if (Math.abs(y - originY) > Math.abs(x - originX)) {
-        ({ width, height } = getPerfectElementSize(elementType, height, x < originX ? -width : width))
+        ;({ width, height } = getPerfectElementSize(elementType, height, x < originX ? -width : width))
       } else {
-        ({ width, height } = getPerfectElementSize(elementType, width, y < originY ? -height : height))
+        ;({ width, height } = getPerfectElementSize(elementType, width, y < originY ? -height : height))
       }
 
       if (height < 0) {

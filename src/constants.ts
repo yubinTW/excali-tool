@@ -336,3 +336,11 @@ export const EDITOR_LS_KEYS = {
   MERMAID_TO_EXCALIDRAW: 'mermaid-to-excalidraw',
   PUBLISH_LIBRARY: 'publish-library-data'
 } as const
+
+export const EXPORT_SOURCE = 'excali-tool'
+
+/**
+ * not translated as this is used only in public, stateless API as default value
+ * where filename is optional and we can't retrieve name from app state
+ */
+export const DEFAULT_FILENAME = 'Untitled'

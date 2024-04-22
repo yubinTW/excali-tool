@@ -4,7 +4,7 @@ import decodePng from 'png-chunks-extract'
 
 import { EXPORT_DATA_TYPES, MIME_TYPES } from '../constants'
 import { blobToArrayBuffer } from './blob'
-import { base64ToString,decode, encode, stringToBase64 } from './encode'
+import { base64ToString, decode, encode, stringToBase64 } from './encode'
 
 // -----------------------------------------------------------------------------
 // PNG

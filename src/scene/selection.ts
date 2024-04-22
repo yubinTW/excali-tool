@@ -1,7 +1,8 @@
+import { getElementAbsoluteCoords, getElementBounds } from '../element'
 import { isElementInViewport } from '../element/sizeHelpers'
 import { isBoundToContainer, isFrameLikeElement } from '../element/typeChecks'
-import { ElementsMapOrArray, ExcalidrawElement, NonDeletedExcalidrawElement } from '../element/types'
-import { getFrameChildren } from '../frame'
+import { ElementsMap, ElementsMapOrArray, ExcalidrawElement, NonDeletedExcalidrawElement } from '../element/types'
+import { elementOverlapsWithFrame, getContainingFrame, getFrameChildren } from '../frame'
 import { AppState, InteractiveCanvasAppState } from '../types'
 import { isShallowEqual } from '../utils'
 
@@ -28,14 +29,64 @@ export const excludeElementsInFramesFromSelection = <T extends ExcalidrawElement
   })
 }
 
+export const getElementsWithinSelection = (
+  elements: readonly NonDeletedExcalidrawElement[],
+  selection: NonDeletedExcalidrawElement,
+  elementsMap: ElementsMap,
+  excludeElementsInFrames: boolean = true
+) => {
+  const [selectionX1, selectionY1, selectionX2, selectionY2] = getElementAbsoluteCoords(selection, elementsMap)
+
+  let elementsInSelection = elements.filter((element) => {
+    let [elementX1, elementY1, elementX2, elementY2] = getElementBounds(element, elementsMap)
+
+    const containingFrame = getContainingFrame(element, elementsMap)
+    if (containingFrame) {
+      const [fx1, fy1, fx2, fy2] = getElementBounds(containingFrame, elementsMap)
+
+      elementX1 = Math.max(fx1, elementX1)
+      elementY1 = Math.max(fy1, elementY1)
+      elementX2 = Math.min(fx2, elementX2)
+      elementY2 = Math.min(fy2, elementY2)
+    }
+
+    return (
+      element.locked === false &&
+      element.type !== 'selection' &&
+      !isBoundToContainer(element) &&
+      selectionX1 <= elementX1 &&
+      selectionY1 <= elementY1 &&
+      selectionX2 >= elementX2 &&
+      selectionY2 >= elementY2
+    )
+  })
+
+  elementsInSelection = excludeElementsInFrames
+    ? excludeElementsInFramesFromSelection(elementsInSelection)
+    : elementsInSelection
+
+  elementsInSelection = elementsInSelection.filter((element) => {
+    const containingFrame = getContainingFrame(element, elementsMap)
+
+    if (containingFrame) {
+      return elementOverlapsWithFrame(element, containingFrame, elementsMap)
+    }
+
+    return true
+  })
+
+  return elementsInSelection
+}
+
 export const getVisibleAndNonSelectedElements = (
   elements: readonly NonDeletedExcalidrawElement[],
   selectedElements: readonly NonDeletedExcalidrawElement[],
-  appState: AppState
+  appState: AppState,
+  elementsMap: ElementsMap
 ) => {
   const selectedElementsSet = new Set(selectedElements.map((element) => element.id))
   return elements.filter((element) => {
-    const isVisible = isElementInViewport(element, appState.width, appState.height, appState)
+    const isVisible = isElementInViewport(element, appState.width, appState.height, appState, elementsMap)
 
     return !selectedElementsSet.has(element.id) && isVisible
   })

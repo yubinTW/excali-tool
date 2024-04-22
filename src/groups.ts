@@ -1,5 +1,5 @@
 import { getBoundTextElement } from './element/textElement'
-import { ElementsMap,ElementsMapOrArray, ExcalidrawElement, GroupId, NonDeleted } from './element/types'
+import { ElementsMap, ElementsMapOrArray, ExcalidrawElement, GroupId, NonDeleted } from './element/types'
 import { AppState, InteractiveCanvasAppState } from './types'
 
 export const selectGroup = (

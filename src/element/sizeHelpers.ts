@@ -4,7 +4,7 @@ import { viewportCoordsToSceneCoords } from '../utils'
 import { getElementBounds } from './bounds'
 import { mutateElement } from './mutateElement'
 import { isFreeDrawElement, isLinearElement } from './typeChecks'
-import { ExcalidrawElement } from './types'
+import { ElementsMap, ExcalidrawElement } from './types'
 
 export const isInvisiblySmallElement = (element: ExcalidrawElement): boolean => {
   if (isLinearElement(element) || isFreeDrawElement(element)) {
@@ -23,9 +23,10 @@ export const isElementInViewport = (
     offsetTop: number
     scrollX: number
     scrollY: number
-  }
+  },
+  elementsMap: ElementsMap
 ) => {
-  const [x1, y1, x2, y2] = getElementBounds(element) // scene coordinates
+  const [x1, y1, x2, y2] = getElementBounds(element, elementsMap) // scene coordinates
   const topLeftSceneCoords = viewportCoordsToSceneCoords(
     {
       clientX: viewTransformations.offsetLeft,

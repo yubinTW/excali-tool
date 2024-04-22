@@ -1,12 +1,97 @@
 import crypto from 'crypto'
 import { nanoid } from 'nanoid'
 
-import { IMAGE_MIME_TYPES, MIME_TYPES } from '../constants'
-import { FileId } from '../element/types'
+import { cleanAppStateForExport } from '../appState'
+import { EXPORT_DATA_TYPES, IMAGE_MIME_TYPES, MIME_TYPES } from '../constants'
+import { clearElementsForExport } from '../element'
+import { ExcalidrawElement, FileId } from '../element/types'
 import { CanvasError, ImageSceneDataError } from '../errors'
-import { DataURL } from '../types'
+import { calculateScrollCenter } from '../scene/scroll'
+import { AppState, DataURL } from '../types'
 import { ValueOf } from '../utility-types'
 import { bytesToHexString, isPromiseLike } from '../utils'
+import { isValidLibrary } from './json'
+import { restore } from './restore'
+import { ImportedDataState } from './types'
+
+export const loadSceneOrLibraryFromBlob = async (
+  blob: Blob | File,
+  /** @see restore.localAppState */
+  localAppState: AppState | null,
+  localElements: readonly ExcalidrawElement[] | null,
+  /** FileSystemHandle. Defaults to `blob.handle` if defined, otherwise null. */
+  fileHandle?: FileSystemHandle | null
+) => {
+  const contents = await parseFileContents(blob)
+  let data
+  try {
+    try {
+      data = JSON.parse(contents)
+    } catch (error: any) {
+      if (isSupportedImageFile(blob)) {
+        throw new ImageSceneDataError("Image doesn't contain scene", 'IMAGE_NOT_CONTAINS_SCENE_DATA')
+      }
+      throw error
+    }
+    if (isValidExcalidrawData(data)) {
+      return {
+        type: MIME_TYPES.excalidraw,
+        data: restore(
+          {
+            elements: clearElementsForExport(data.elements || []),
+            appState: {
+              theme: localAppState?.theme,
+              fileHandle: fileHandle || blob.handle || null,
+              ...cleanAppStateForExport(data.appState || {}),
+              ...(localAppState ? calculateScrollCenter(data.elements || [], localAppState) : {})
+            },
+            files: data.files
+          },
+          localAppState,
+          localElements,
+          { repairBindings: true, refreshDimensions: false }
+        )
+      }
+    } else if (isValidLibrary(data)) {
+      return {
+        type: MIME_TYPES.excalidrawlib,
+        data
+      }
+    }
+    throw new Error('Error: invalid file')
+  } catch (error: any) {
+    if (error instanceof ImageSceneDataError) {
+      throw error
+    }
+    throw new Error('Error: invalid file')
+  }
+}
+
+export const loadFromBlob = async (
+  blob: Blob,
+  /** @see restore.localAppState */
+  localAppState: AppState | null,
+  localElements: readonly ExcalidrawElement[] | null,
+  /** FileSystemHandle. Defaults to `blob.handle` if defined, otherwise null. */
+  fileHandle?: FileSystemHandle | null
+) => {
+  const ret = await loadSceneOrLibraryFromBlob(blob, localAppState, localElements, fileHandle)
+  if (ret.type !== MIME_TYPES.excalidraw) {
+    throw new Error('Error: invalid file')
+  }
+  return ret.data
+}
+
+export const isValidExcalidrawData = (data?: {
+  type?: any
+  elements?: any
+  appState?: any
+}): data is ImportedDataState => {
+  return (
+    data?.type === EXPORT_DATA_TYPES.excalidraw &&
+    (!data.elements || (Array.isArray(data.elements) && (!data.appState || typeof data.appState === 'object')))
+  )
+}
 
 const parseFileContents = async (blob: Blob | File) => {
   let contents: string
@@ -101,6 +186,7 @@ export const isSupportedImageFile = (
 }
 
 export const canvasToBlob = async (canvas: HTMLCanvasElement | Promise<HTMLCanvasElement>): Promise<Blob> => {
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
       if (isPromiseLike(canvas)) {

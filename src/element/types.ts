@@ -17,6 +17,7 @@ export type TextAlign = (typeof TEXT_ALIGN)[keyof typeof TEXT_ALIGN]
 
 type VerticalAlignKeys = keyof typeof VERTICAL_ALIGN
 export type VerticalAlign = (typeof VERTICAL_ALIGN)[VerticalAlignKeys]
+export type FractionalIndex = string & { _brand: 'franctionalIndex' }
 
 type _ExcalidrawElementBase = Readonly<{
   id: string
@@ -43,6 +44,11 @@ type _ExcalidrawElementBase = Readonly<{
       Used for deterministic reconciliation of updates during collaboration,
       in case the versions (see above) are identical. */
   versionNonce: number
+  /** String in a fractional form defined by https://github.com/rocicorp/fractional-indexing.
+      Used for ordering in multiplayer scenarios, such as during reconciliation or undo / redo.
+      Always kept in sync with the array order by `syncMovedIndices` and `syncInvalidIndices`.
+      Could be null, i.e. for new elements which were not yet assigned to the scene. */
+  index: FractionalIndex | null
   isDeleted: boolean
   /** List of groups the element belongs to.
       Ordered from deepest to shallowest. */
@@ -83,9 +89,17 @@ export type ExcalidrawEmbeddableElement = _ExcalidrawElementBase &
     type: 'embeddable'
   }>
 
+export type ExcalidrawIframeElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: 'iframe'
+  }>
+
+export type ExcalidrawIframeLikeElement = ExcalidrawIframeElement | ExcalidrawEmbeddableElement
+
 export type IframeData = {
   intrinsicSize: { w: number; h: number }
   error?: Error
+  sandbox?: { allowSameOrigin?: boolean }
 } & ({ type: 'video' | 'generic'; link: string } | { type: 'document'; srcdoc: (theme: Theme) => string })
 
 export type ExcalidrawImageElement = _ExcalidrawElementBase &
@@ -134,7 +148,14 @@ export type ExcalidrawElement =
   | ExcalidrawImageElement
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement
+  | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement
+
+export type Ordered<TElement extends ExcalidrawElement> = TElement & {
+  index: FractionalIndex
+}
+
+export type OrderedExcalidrawElement = Ordered<ExcalidrawElement>
 
 export type NonDeleted<TElement extends ExcalidrawElement> = TElement & {
   isDeleted: boolean
@@ -148,7 +169,6 @@ export type ExcalidrawTextElement = _ExcalidrawElementBase &
     fontSize: number
     fontFamily: FontFamilyValues
     text: string
-    baseline: number
     textAlign: TextAlign
     verticalAlign: VerticalAlign
     containerId: ExcalidrawGenericElement['id'] | null
@@ -166,6 +186,7 @@ export type ExcalidrawBindableElement =
   | ExcalidrawEllipseElement
   | ExcalidrawTextElement
   | ExcalidrawImageElement
+  | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement
@@ -216,7 +237,7 @@ export type ExcalidrawArrowElement = ExcalidrawLinearElement &
 export type ExcalidrawFreeDrawElement = _ExcalidrawElementBase &
   Readonly<{
     type: 'freedraw'
-    points: Point[]
+    points: readonly Point[]
     pressures: readonly number[]
     simulatePressure: boolean
     lastCommittedPoint: Point | null
@@ -244,13 +265,13 @@ export type NonDeletedElementsMap = Map<ExcalidrawElement['id'], NonDeletedExcal
  * Map of all excalidraw Scene elements, including deleted.
  * Not a subset. Use this type when you need access to current Scene elements.
  */
-export type SceneElementsMap = Map<ExcalidrawElement['id'], ExcalidrawElement> & MakeBrand<'SceneElementsMap'>
+export type SceneElementsMap = Map<ExcalidrawElement['id'], Ordered<ExcalidrawElement>> & MakeBrand<'SceneElementsMap'>
 
 /**
  * Map of all non-deleted Scene elements.
  * Not a subset. Use this type when you need access to current Scene elements.
  */
-export type NonDeletedSceneElementsMap = Map<ExcalidrawElement['id'], NonDeletedExcalidrawElement> &
+export type NonDeletedSceneElementsMap = Map<ExcalidrawElement['id'], Ordered<NonDeletedExcalidrawElement>> &
   MakeBrand<'NonDeletedSceneElementsMap'>
 
 export type ElementsMapOrArray = readonly ExcalidrawElement[] | Readonly<ElementsMap>
