@@ -1,13 +1,14 @@
+import { Canvas, SKRSContext2D } from '@napi-rs/canvas'
 import { Config, Drawable, OpSet, Options, ResolvedOptions } from './core'
 import { RoughGenerator } from './generator'
 import { Point } from './geometry'
 
 export class RoughCanvas {
   private gen: RoughGenerator
-  private canvas: HTMLCanvasElement
-  private ctx: CanvasRenderingContext2D
+  private canvas: Canvas
+  private ctx: SKRSContext2D
 
-  constructor(canvas: HTMLCanvasElement, config?: Config) {
+  constructor(canvas: Canvas, config?: Config) {
     this.canvas = canvas
     this.ctx = this.canvas.getContext('2d')!
     this.gen = new RoughGenerator(config)
@@ -51,7 +52,7 @@ export class RoughCanvas {
     }
   }
 
-  private fillSketch(ctx: CanvasRenderingContext2D, drawing: OpSet, o: ResolvedOptions) {
+  private fillSketch(ctx: SKRSContext2D, drawing: OpSet, o: ResolvedOptions) {
     let fweight = o.fillWeight
     if (fweight < 0) {
       fweight = o.strokeWidth / 2
@@ -69,12 +70,7 @@ export class RoughCanvas {
     ctx.restore()
   }
 
-  private _drawToContext(
-    ctx: CanvasRenderingContext2D,
-    drawing: OpSet,
-    fixedDecimals?: number,
-    rule: CanvasFillRule = 'nonzero'
-  ) {
+  private _drawToContext(ctx: SKRSContext2D, drawing: OpSet, fixedDecimals?: number, rule: CanvasFillRule = 'nonzero') {
     ctx.beginPath()
     for (const item of drawing.ops) {
       const data =

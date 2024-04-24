@@ -42,6 +42,8 @@ import { ShapeCache } from '../scene/ShapeCache'
 import { RenderableElementsMap, StaticCanvasRenderConfig } from '../scene/types'
 import { AppState, ElementsPendingErasure, InteractiveCanvasAppState, StaticCanvasAppState, Zoom } from '../types'
 import { distance, getFontString, isRTL } from '../utils'
+import { Canvas, createCanvas, SKRSContext2D } from '@napi-rs/canvas'
+import globalJsdom from 'global-jsdom'
 
 // using a stronger invert (100% vs our regular 93%) and saturate
 // as a temp hack to make images in dark theme look closer to original
@@ -89,7 +91,7 @@ export const getRenderOpacity = (
 
 export interface ExcalidrawElementWithCanvas {
   element: ExcalidrawElement | ExcalidrawTextElement
-  canvas: HTMLCanvasElement
+  canvas: Canvas
   theme: AppState['theme']
   scale: number
   zoomValue: AppState['zoom']['value']
@@ -152,14 +154,15 @@ const generateElementCanvas = (
   renderConfig: StaticCanvasRenderConfig,
   appState: StaticCanvasAppState
 ): ExcalidrawElementWithCanvas => {
-  const canvas = document.createElement('canvas')
-  const context = canvas.getContext('2d')!
-  const padding = getCanvasPadding(element)
-
   const { width, height, scale } = cappedElementCanvasSize(element, elementsMap, zoom)
 
-  canvas.width = width
-  canvas.height = height
+  // const canvas = document.createElement('canvas')
+  const canvas = createCanvas(width, height)
+  const context = canvas.getContext('2d')
+  const padding = getCanvasPadding(element)
+
+  // canvas.width = width
+  // canvas.height = height
 
   let canvasOffsetX = 0
   let canvasOffsetY = 0
@@ -215,7 +218,7 @@ IMAGE_ERROR_PLACEHOLDER_IMG.src = `data:${MIME_TYPES.svg},${encodeURIComponent(
 
 const drawImagePlaceholder = (
   element: ExcalidrawImageElement,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   zoomValue: AppState['zoom']['value']
 ) => {
   context.fillStyle = '#E7E7E7'
@@ -226,7 +229,8 @@ const drawImagePlaceholder = (
   const size = Math.min(imageMinWidthOrHeight, Math.min(imageMinWidthOrHeight * 0.4, 100))
 
   context.drawImage(
-    element.status === 'error' ? IMAGE_ERROR_PLACEHOLDER_IMG : IMAGE_PLACEHOLDER_IMG,
+    // element.status === 'error' ? IMAGE_ERROR_PLACEHOLDER_IMG : IMAGE_PLACEHOLDER_IMG,
+    createCanvas(100, 100), // empty canvas
     element.width / 2 - size / 2,
     element.height / 2 - size / 2,
     size,
@@ -237,7 +241,7 @@ const drawImagePlaceholder = (
 const drawElementOnCanvas = (
   element: NonDeletedExcalidrawElement,
   rc: RoughCanvas,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   renderConfig: StaticCanvasRenderConfig,
   appState: StaticCanvasAppState
 ) => {
@@ -303,13 +307,13 @@ const drawElementOnCanvas = (
     default: {
       if (isTextElement(element)) {
         const rtl = isRTL(element.text)
-        const shouldTemporarilyAttach = rtl && !context.canvas.isConnected
-        if (shouldTemporarilyAttach) {
-          // to correctly render RTL text mixed with LTR, we have to append it
-          // to the DOM
-          document.body.appendChild(context.canvas)
-        }
-        context.canvas.setAttribute('dir', rtl ? 'rtl' : 'ltr')
+        // const shouldTemporarilyAttach = rtl && !context.canvas.isConnected
+        // if (shouldTemporarilyAttach) {
+        //   // to correctly render RTL text mixed with LTR, we have to append it
+        //   // to the DOM
+        //   document.body.appendChild(context.canvas)
+        // }
+        // context.canvas.setAttribute('dir', rtl ? 'rtl' : 'ltr')
         context.save()
         context.font = getFontString(element)
         context.fillStyle = element.strokeColor
@@ -329,9 +333,9 @@ const drawElementOnCanvas = (
           context.fillText(lines[index], horizontalOffset, index * lineHeightPx + verticalOffset)
         }
         context.restore()
-        if (shouldTemporarilyAttach) {
-          context.canvas.remove()
-        }
+        // if (shouldTemporarilyAttach) {
+        //   context.canvas.remove()
+        // }
       } else {
         throw new Error(`Unimplemented type ${element.type}`)
       }
@@ -373,7 +377,7 @@ const generateElementWithCanvas = (
 
 const drawElementFromCanvas = (
   elementWithCanvas: ExcalidrawElementWithCanvas,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   renderConfig: StaticCanvasRenderConfig,
   appState: StaticCanvasAppState,
   allElementsMap: NonDeletedSceneElementsMap
@@ -400,14 +404,20 @@ const drawElementFromCanvas = (
   const boundTextElement = getBoundTextElement(element, allElementsMap)
 
   if (isArrowElement(element) && boundTextElement) {
-    const tempCanvas = document.createElement('canvas')
-    const tempCanvasContext = tempCanvas.getContext('2d')!
+    // const tempCanvas = document.createElement('canvas')
+    // const tempCanvasContext = tempCanvas.getContext('2d')!
 
     // Take max dimensions of arrow canvas so that when canvas is rotated
     // the arrow doesn't get clipped
     const maxDim = Math.max(distance(x1, x2), distance(y1, y2))
-    tempCanvas.width = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
-    tempCanvas.height = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+    // tempCanvas.width = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+    // tempCanvas.height = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+    const width = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+    const height = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+
+    const tempCanvas = createCanvas(width, height)
+    const tempCanvasContext = tempCanvas.getContext('2d')
+
     const offsetX = (tempCanvas.width - elementWithCanvas.canvas!.width) / 2
     const offsetY = (tempCanvas.height - elementWithCanvas.canvas!.height) / 2
 
@@ -490,7 +500,7 @@ const drawElementFromCanvas = (
 
 export const renderSelectionElement = (
   element: NonDeletedExcalidrawElement,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState
 ) => {
   context.save()
@@ -516,7 +526,7 @@ export const renderElement = (
   elementsMap: RenderableElementsMap,
   allElementsMap: NonDeletedSceneElementsMap,
   rc: RoughCanvas,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   renderConfig: StaticCanvasRenderConfig,
   appState: StaticCanvasAppState
 ) => {
@@ -620,16 +630,22 @@ export const renderElement = (
         const boundTextElement = getBoundTextElement(element, elementsMap)
 
         if (isArrowElement(element) && boundTextElement) {
-          const tempCanvas = document.createElement('canvas')
-
-          const tempCanvasContext = tempCanvas.getContext('2d')!
+          // const tempCanvas = document.createElement('canvas')
+          // const tempCanvasContext = tempCanvas.getContext('2d')!
 
           // Take max dimensions of arrow canvas so that when canvas is rotated
           // the arrow doesn't get clipped
           const maxDim = Math.max(distance(x1, x2), distance(y1, y2))
           const padding = getCanvasPadding(element)
-          tempCanvas.width = maxDim * appState.exportScale + padding * 10 * appState.exportScale
-          tempCanvas.height = maxDim * appState.exportScale + padding * 10 * appState.exportScale
+
+          // tempCanvas.width = maxDim * appState.exportScale + padding * 10 * appState.exportScale
+          // tempCanvas.height = maxDim * appState.exportScale + padding * 10 * appState.exportScale
+
+          const width = maxDim * appState.exportScale + padding * 10 * appState.exportScale
+          const height = maxDim * appState.exportScale + padding * 10 * appState.exportScale
+
+          const tempCanvas = createCanvas(width, height)
+          const tempCanvasContext = tempCanvas.getContext('2d')
 
           tempCanvasContext.translate(tempCanvas.width / 2, tempCanvas.height / 2)
           tempCanvasContext.scale(appState.exportScale, appState.exportScale)

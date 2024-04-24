@@ -1,10 +1,11 @@
+import { Canvas } from '@napi-rs/canvas'
 import { RoughCanvas } from './canvas'
 import { Config } from './core'
 import { RoughGenerator } from './generator'
 import { RoughSVG } from './svg'
 
 export default {
-  canvas(canvas: HTMLCanvasElement, config?: Config): RoughCanvas {
+  canvas(canvas: Canvas, config?: Config): RoughCanvas {
     return new RoughCanvas(canvas, config)
   },
 

@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { AppState, StaticCanvasAppState } from '../types'
+import { Canvas, SKRSContext2D, createCanvas } from '@napi-rs/canvas'
 
-export const fillCircle = (
-  context: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  radius: number,
-  stroke = true
-) => {
+export const fillCircle = (context: SKRSContext2D, cx: number, cy: number, radius: number, stroke = true) => {
   context.beginPath()
   context.arc(cx, cy, radius, 0, Math.PI * 2)
   context.fill()
@@ -16,7 +11,7 @@ export const fillCircle = (
   }
 }
 
-export const getNormalizedCanvasDimensions = (canvas: HTMLCanvasElement, scale: number): [number, number] => {
+export const getNormalizedCanvasDimensions = (canvas: Canvas, scale: number): [number, number] => {
   // When doing calculations based on canvas width we should used normalized one
   return [canvas.width / scale, canvas.height / scale]
 }
@@ -30,15 +25,15 @@ export const bootstrapCanvas = ({
   isExporting,
   viewBackgroundColor
 }: {
-  canvas: HTMLCanvasElement
+  canvas: Canvas
   scale: number
   normalizedWidth: number
   normalizedHeight: number
   theme?: AppState['theme']
   isExporting?: any // StaticCanvasRenderConfig['isExporting']
   viewBackgroundColor?: StaticCanvasAppState['viewBackgroundColor']
-}): CanvasRenderingContext2D => {
-  const context = canvas.getContext('2d')!
+}): SKRSContext2D => {
+  const context = createCanvas(canvas.width, canvas.height).getContext('2d')
 
   context.setTransform(1, 0, 0, 1, 0, 0)
   context.scale(scale, scale)

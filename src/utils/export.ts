@@ -1,5 +1,6 @@
+import { createCanvas } from '@napi-rs/canvas'
 import { getDefaultAppState } from '../appState'
-import { copyBlobToClipboardAsPng, copyTextToSystemClipboard, copyToClipboard } from '../clipboard'
+import { copyBufferToClipboardAsPng, copyTextToSystemClipboard, copyToClipboard } from '../clipboard'
 import { MIME_TYPES } from '../constants'
 import { encodePngMetadata } from '../data/image'
 import { serializeAsJSON } from '../data/json'
@@ -8,9 +9,10 @@ import { ExcalidrawElement, ExcalidrawFrameLikeElement, NonDeleted } from '../el
 import { exportToCanvas as _exportToCanvas, exportToSvg as _exportToSvg } from '../scene/export'
 import { AppState, BinaryFiles } from '../types'
 
+import fs from 'fs'
 export { MIME_TYPES }
 
-type ExportOpts = {
+export type ExportOpts = {
   elements: readonly NonDeleted<ExcalidrawElement>[]
   appState?: Partial<Omit<AppState, 'offsetTop' | 'offsetLeft'>>
   files: BinaryFiles | null
@@ -38,7 +40,8 @@ export const exportToCanvas = ({
     files || {},
     { exportBackground, exportPadding, viewBackgroundColor, exportingFrame },
     (width: number, height: number) => {
-      const canvas = document.createElement('canvas')
+      // const canvas = document.createElement('canvas')
+      const canvas = createCanvas(width, height)
 
       if (maxWidthOrHeight) {
         if (typeof getDimensions === 'function') {
@@ -50,8 +53,8 @@ export const exportToCanvas = ({
         // if content is less then maxWidthOrHeight, fallback on supplied scale
         const scale = maxWidthOrHeight < max ? maxWidthOrHeight / max : appState?.exportScale ?? 1
 
-        canvas.width = width * scale
-        canvas.height = height * scale
+        canvas.width = 100 // width * scale
+        canvas.height = 100 // height * scale
 
         return {
           canvas,
@@ -72,13 +75,13 @@ export const exportToCanvas = ({
   )
 }
 
-export const exportToBlob = async (
+export const exportToBuffer = async (
   opts: ExportOpts & {
     mimeType?: string
     quality?: number
     exportPadding?: number
   }
-): Promise<Blob> => {
+): Promise<Buffer> => {
   let { mimeType = MIME_TYPES.png, quality } = opts
 
   if (mimeType === MIME_TYPES.png && typeof quality === 'number') {
@@ -98,36 +101,39 @@ export const exportToBlob = async (
     }
   }
 
-  const canvas = await exportToCanvas(opts)
+  const canvas = exportToCanvas(opts)
 
   quality = quality ? quality : /image\/jpe?g/.test(mimeType) ? 0.92 : 0.8
 
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      async (blob) => {
-        if (!blob) {
-          return reject(new Error("couldn't export to blob"))
-        }
-        if (blob && mimeType === MIME_TYPES.png && opts.appState?.exportEmbedScene) {
-          blob = await encodePngMetadata({
-            blob,
-            metadata: serializeAsJSON(
-              // NOTE as long as we're using the Scene hack, we need to ensure
-              // we pass the original, uncloned elements when serializing
-              // so that we keep ids stable
-              opts.elements,
-              opts.appState,
-              opts.files || {},
-              'local'
-            )
-          })
-        }
-        resolve(blob)
-      },
-      mimeType,
-      quality
-    )
-  })
+  return canvas.toBuffer('image/png')
+  // const buffer = canvas.toBuffer('image/jpeg', quality)
+  // resolve(buffer)
+  // canvas.toBuffer(
+  //   async (blob) => {
+  //     if (!blob) {
+  //       return reject(new Error("couldn't export to blob"))
+  //     }
+  //     if (blob && mimeType === MIME_TYPES.png && opts.appState?.exportEmbedScene) {
+  //       blob = await encodePngMetadata({
+  //         blob,
+  //         metadata: serializeAsJSON(
+  //           // NOTE as long as we're using the Scene hack, we need to ensure
+  //           // we pass the original, uncloned elements when serializing
+  //           // so that we keep ids stable
+  //           opts.elements,
+  //           opts.appState,
+  //           opts.files || {},
+  //           'local'
+  //         )
+  //       })
+  //     }
+  //     resolve(blob)
+  //   },
+  //   mimeType,
+  //   quality
+  // )
+  //   })
+  // }
 }
 
 export const exportToSvg = async ({
@@ -165,7 +171,7 @@ export const exportToClipboard = async (
     const svg = await exportToSvg(opts)
     await copyTextToSystemClipboard(svg.outerHTML)
   } else if (opts.type === 'png') {
-    await copyBlobToClipboardAsPng(exportToBlob(opts))
+    await copyBufferToClipboardAsPng(exportToBuffer(opts))
   } else if (opts.type === 'json') {
     await copyToClipboard(opts.elements, opts.files)
   } else {

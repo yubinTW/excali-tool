@@ -38,9 +38,10 @@ import { InteractiveCanvasRenderConfig, InteractiveSceneRenderConfig, Renderable
 import { InteractiveCanvasAppState, Point } from '../types'
 import { arrayToMap, throttleRAF } from '../utils'
 import { bootstrapCanvas, fillCircle, getNormalizedCanvasDimensions } from './helpers'
+import { SKRSContext2D } from '@napi-rs/canvas'
 
 const renderLinearElementPointHighlight = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   elementsMap: ElementsMap
 ) => {
@@ -61,14 +62,14 @@ const renderLinearElementPointHighlight = (
   context.restore()
 }
 
-const highlightPoint = (point: Point, context: CanvasRenderingContext2D, appState: InteractiveCanvasAppState) => {
+const highlightPoint = (point: Point, context: SKRSContext2D, appState: InteractiveCanvasAppState) => {
   context.fillStyle = 'rgba(105, 101, 219, 0.4)'
 
   fillCircle(context, point[0], point[1], LinearElementEditor.POINT_HANDLE_SIZE / appState.zoom.value, false)
 }
 
 const strokeRectWithRotation = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   x: number,
   y: number,
   width: number,
@@ -98,7 +99,7 @@ const strokeRectWithRotation = (
 }
 
 const strokeDiamondWithRotation = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   width: number,
   height: number,
   cx: number,
@@ -119,7 +120,7 @@ const strokeDiamondWithRotation = (
 }
 
 const renderSingleLinearPoint = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   point: Point,
   radius: number,
@@ -139,7 +140,7 @@ const renderSingleLinearPoint = (
 }
 
 const strokeEllipseWithRotation = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   width: number,
   height: number,
   cx: number,
@@ -152,7 +153,7 @@ const strokeEllipseWithRotation = (
 }
 
 const renderBindingHighlightForBindableElement = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   element: ExcalidrawBindableElement,
   elementsMap: ElementsMap
 ) => {
@@ -213,7 +214,7 @@ const renderBindingHighlightForBindableElement = (
 }
 
 const renderBindingHighlightForSuggestedPointBinding = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   suggestedBinding: SuggestedPointBinding,
   elementsMap: ElementsMap
 ) => {
@@ -232,7 +233,7 @@ const renderBindingHighlightForSuggestedPointBinding = (
 }
 
 const renderSelectionBorder = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   elementProperties: {
     angle: number
@@ -283,7 +284,7 @@ const renderSelectionBorder = (
 }
 
 const renderBindingHighlight = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   suggestedBinding: SuggestedBinding,
   elementsMap: ElementsMap
@@ -300,7 +301,7 @@ const renderBindingHighlight = (
 }
 
 const renderFrameHighlight = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   frame: NonDeleted<ExcalidrawFrameLikeElement>,
   elementsMap: ElementsMap
@@ -330,7 +331,7 @@ const renderFrameHighlight = (
 }
 
 const renderElementsBoxHighlight = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   elements: NonDeleted<ExcalidrawElement>[]
 ) => {
@@ -368,7 +369,7 @@ const renderElementsBoxHighlight = (
 }
 
 const renderLinearPointHandles = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState,
   element: NonDeleted<ExcalidrawLinearElement>,
   elementsMap: RenderableElementsMap
@@ -419,7 +420,7 @@ const renderLinearPointHandles = (
 }
 
 const renderTransformHandles = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   renderConfig: InteractiveCanvasRenderConfig,
   appState: InteractiveCanvasAppState,
   transformHandles: TransformHandles,

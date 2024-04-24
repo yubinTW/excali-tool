@@ -1,3 +1,4 @@
+import { SKRSContext2D } from '@napi-rs/canvas'
 import { THEME } from '../constants'
 import { PointSnapLine, PointerSnapLine } from '../snapping'
 import { InteractiveCanvasAppState, Point } from '../types'
@@ -7,7 +8,7 @@ const SNAP_COLOR_DARK = '#ff0000'
 const SNAP_WIDTH = 1
 const SNAP_CROSS_SIZE = 2
 
-export const renderSnaps = (context: CanvasRenderingContext2D, appState: InteractiveCanvasAppState) => {
+export const renderSnaps = (context: SKRSContext2D, appState: InteractiveCanvasAppState) => {
   if (!appState.snapLines.length) {
     return
   }
@@ -45,7 +46,7 @@ export const renderSnaps = (context: CanvasRenderingContext2D, appState: Interac
 
 const drawPointsSnapLine = (
   pointSnapLine: PointSnapLine,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState
 ) => {
   if (!appState.zenModeEnabled) {
@@ -62,7 +63,7 @@ const drawPointsSnapLine = (
 
 const drawPointerSnapLine = (
   pointerSnapLine: PointerSnapLine,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: InteractiveCanvasAppState
 ) => {
   drawCross(pointerSnapLine.points[0], appState, context)
@@ -71,7 +72,7 @@ const drawPointerSnapLine = (
   }
 }
 
-const drawCross = ([x, y]: Point, appState: InteractiveCanvasAppState, context: CanvasRenderingContext2D) => {
+const drawCross = ([x, y]: Point, appState: InteractiveCanvasAppState, context: SKRSContext2D) => {
   context.save()
   const size = (appState.zenModeEnabled ? SNAP_CROSS_SIZE * 1.5 : SNAP_CROSS_SIZE) / appState.zoom.value
   context.beginPath()
@@ -86,7 +87,7 @@ const drawCross = ([x, y]: Point, appState: InteractiveCanvasAppState, context: 
   context.restore()
 }
 
-const drawLine = (from: Point, to: Point, context: CanvasRenderingContext2D) => {
+const drawLine = (from: Point, to: Point, context: SKRSContext2D) => {
   context.beginPath()
   context.lineTo(...from)
   context.lineTo(...to)
@@ -98,7 +99,7 @@ const drawGapLine = (
   to: Point,
   direction: 'horizontal' | 'vertical',
   appState: InteractiveCanvasAppState,
-  context: CanvasRenderingContext2D
+  context: SKRSContext2D
 ) => {
   // a horizontal gap snap line
   // |–––––––||–––––––|

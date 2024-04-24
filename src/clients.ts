@@ -1,3 +1,4 @@
+import { SKRSContext2D } from '@napi-rs/canvas'
 import { COLOR_CHARCOAL_BLACK, COLOR_VOICE_CALL, COLOR_WHITE, THEME } from './constants'
 import { roundRect } from './renderer/roundRect'
 import { InteractiveCanvasRenderConfig } from './scene/types'
@@ -44,7 +45,7 @@ export const renderRemoteCursors = ({
   normalizedWidth,
   normalizedHeight
 }: {
-  context: CanvasRenderingContext2D
+  context: SKRSContext2D
   renderConfig: InteractiveCanvasRenderConfig
   appState: InteractiveCanvasAppState
   normalizedWidth: number

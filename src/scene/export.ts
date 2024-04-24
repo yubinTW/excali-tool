@@ -1,4 +1,5 @@
 /* eslint-disable prefer-const */
+import { Canvas, createCanvas as _createCanvas } from '@napi-rs/canvas'
 import { getDefaultAppState } from '../appState'
 import { DEFAULT_EXPORT_PADDING, FONT_FAMILY, FRAME_STYLE, SVG_NS, THEME } from '../constants'
 import { serializeAsJSON } from '../data/json'
@@ -138,7 +139,7 @@ const prepareElementsForRender = ({
   return nextElements
 }
 
-export const exportToCanvas = async (
+export const exportToCanvas = (
   elements: readonly NonDeletedExcalidrawElement[],
   appState: AppState,
   files: BinaryFiles,
@@ -153,10 +154,11 @@ export const exportToCanvas = async (
     viewBackgroundColor: string
     exportingFrame?: ExcalidrawFrameLikeElement | null
   },
-  createCanvas: (width: number, height: number) => { canvas: HTMLCanvasElement; scale: number } = (width, height) => {
-    const canvas = document.createElement('canvas')
-    canvas.width = width * appState.exportScale
-    canvas.height = height * appState.exportScale
+  createCanvas: (width: number, height: number) => { canvas: Canvas; scale: number } = (width, height) => {
+    // const canvas = document.createElement('canvas')
+    // canvas.width = width * appState.exportScale
+    // canvas.height = height * appState.exportScale
+    const canvas = _createCanvas(width, height)
     return { canvas, scale: appState.exportScale }
   }
 ) => {
@@ -182,11 +184,13 @@ export const exportToCanvas = async (
 
   const defaultAppState = getDefaultAppState()
 
-  const { imageCache } = await updateImageCache({
-    imageCache: new Map(),
-    fileIds: getInitializedImageElements(elementsForRender).map((element) => element.fileId),
-    files
-  })
+  // const { imageCache } = await updateImageCache({
+  //   imageCache: new Map(),
+  //   fileIds: getInitializedImageElements(elementsForRender).map((element) => element.fileId),
+  //   files
+  // })
+
+  const imageCache = {}
 
   renderStaticScene({
     canvas,

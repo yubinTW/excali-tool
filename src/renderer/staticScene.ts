@@ -1,3 +1,4 @@
+import { SKRSContext2D } from '@napi-rs/canvas'
 import { EXTERNAL_LINK_IMG, getLinkHandleFromCoords } from '../components/hyperlink/helpers'
 import { FRAME_STYLE } from '../constants'
 import { getElementAbsoluteCoords } from '../element'
@@ -13,7 +14,7 @@ import { throttleRAF } from '../utils'
 import { bootstrapCanvas, getNormalizedCanvasDimensions } from './helpers'
 
 const strokeGrid = (
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   gridSize: number,
   scrollX: number,
   scrollY: number,
@@ -62,7 +63,7 @@ const strokeGrid = (
 
 const frameClip = (
   frame: ExcalidrawFrameLikeElement,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   renderConfig: StaticCanvasRenderConfig,
   appState: StaticCanvasAppState
 ) => {
@@ -80,7 +81,7 @@ const frameClip = (
 let linkCanvasCache: any
 const renderLinkIcon = (
   element: NonDeletedExcalidrawElement,
-  context: CanvasRenderingContext2D,
+  context: SKRSContext2D,
   appState: StaticCanvasAppState,
   elementsMap: ElementsMap
 ) => {

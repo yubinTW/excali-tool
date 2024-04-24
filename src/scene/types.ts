@@ -1,3 +1,4 @@
+import { Canvas } from '@napi-rs/canvas'
 import {
   ExcalidrawElement,
   ExcalidrawTextElement,
@@ -65,7 +66,7 @@ export type RenderInteractiveSceneCallback = {
 }
 
 export type StaticSceneRenderConfig = {
-  canvas: HTMLCanvasElement
+  canvas: Canvas
   rc: RoughCanvas
   elementsMap: RenderableElementsMap
   allElementsMap: NonDeletedSceneElementsMap
@@ -76,7 +77,7 @@ export type StaticSceneRenderConfig = {
 }
 
 export type InteractiveSceneRenderConfig = {
-  canvas: HTMLCanvasElement | null
+  canvas: Canvas | null
   elementsMap: RenderableElementsMap
   visibleElements: readonly NonDeletedExcalidrawElement[]
   selectedElements: readonly NonDeletedExcalidrawElement[]
