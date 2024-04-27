@@ -12,6 +12,7 @@ import { StaticCanvasRenderConfig, StaticSceneRenderConfig } from '../scene/type
 import { StaticCanvasAppState, Zoom } from '../types'
 import { throttleRAF } from '../utils'
 import { bootstrapCanvas, getNormalizedCanvasDimensions } from './helpers'
+import fs from 'fs'
 
 const strokeGrid = (
   context: SKRSContext2D,
@@ -276,6 +277,5 @@ export const renderStaticScene = (renderConfig: StaticSceneRenderConfig, throttl
     renderStaticSceneThrottled(renderConfig)
     return
   }
-
   _renderStaticScene(renderConfig)
 }

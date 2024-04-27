@@ -1,27 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 require('global-jsdom/register')
 
-import { createCanvas } from '@napi-rs/canvas'
-
-import {
-  ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
-  ARROW_LABEL_WIDTH_FRACTION,
-  BOUND_TEXT_PADDING,
-  DEFAULT_FONT_FAMILY,
-  DEFAULT_FONT_SIZE,
-  FONT_FAMILY,
-  TEXT_ALIGN,
-  VERTICAL_ALIGN
-} from '../constants'
-import { AppState } from '../types'
-import { ExtractSetType, MakeBrand } from '../utility-types'
-import { arrayToMap, getFontString, normalizeEOL } from '../utils'
-import { isTextElement } from '.'
-import { resetOriginalContainerCache, updateOriginalContainerCache } from './containerCache'
-import { LinearElementEditor } from './linearElementEditor'
-import { mutateElement } from './mutateElement'
-import { MaybeTransformHandleType } from './transformHandles'
-import { isArrowElement, isBoundToContainer } from './typeChecks'
+import { getFontString, arrayToMap, normalizeEOL } from '../utils'
 import {
   ElementsMap,
   ExcalidrawElement,
@@ -33,6 +13,25 @@ import {
   FontString,
   NonDeletedExcalidrawElement
 } from './types'
+import { mutateElement } from './mutateElement'
+import {
+  ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
+  ARROW_LABEL_WIDTH_FRACTION,
+  BOUND_TEXT_PADDING,
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_SIZE,
+  FONT_FAMILY,
+  TEXT_ALIGN,
+  VERTICAL_ALIGN
+} from '../constants'
+import { MaybeTransformHandleType } from './transformHandles'
+import { isTextElement } from '.'
+import { isBoundToContainer, isArrowElement } from './typeChecks'
+import { LinearElementEditor } from './linearElementEditor'
+import { AppState } from '../types'
+import { resetOriginalContainerCache, updateOriginalContainerCache } from './containerCache'
+import { ExtractSetType, MakeBrand } from '../utility-types'
+import { Canvas, createCanvas } from '@napi-rs/canvas'
 
 export const normalizeText = (text: string) => {
   return (
@@ -49,7 +48,8 @@ const splitIntoLines = (text: string) => {
 export const redrawTextBoundingBox = (
   textElement: ExcalidrawTextElement,
   container: ExcalidrawElement | null,
-  elementsMap: ElementsMap
+  elementsMap: ElementsMap,
+  informMutation: boolean = true
 ) => {
   let maxWidth = undefined
   const boundTextUpdates = {
@@ -57,7 +57,8 @@ export const redrawTextBoundingBox = (
     y: textElement.y,
     text: textElement.text,
     width: textElement.width,
-    height: textElement.height
+    height: textElement.height,
+    angle: container?.angle ?? textElement.angle
   }
 
   boundTextUpdates.text = textElement.text
@@ -77,12 +78,12 @@ export const redrawTextBoundingBox = (
 
     if (!isArrowElement(container) && metrics.height > maxContainerHeight) {
       const nextHeight = computeContainerDimensionForBoundText(metrics.height, container.type)
-      mutateElement(container, { height: nextHeight })
+      mutateElement(container, { height: nextHeight }, informMutation)
       updateOriginalContainerCache(container.id, nextHeight)
     }
     if (metrics.width > maxContainerWidth) {
       const nextWidth = computeContainerDimensionForBoundText(metrics.width, container.type)
-      mutateElement(container, { width: nextWidth })
+      mutateElement(container, { width: nextWidth }, informMutation)
     }
     const updatedTextElement = {
       ...textElement,
@@ -93,15 +94,15 @@ export const redrawTextBoundingBox = (
     boundTextUpdates.y = y
   }
 
-  mutateElement(textElement, boundTextUpdates)
+  mutateElement(textElement, boundTextUpdates, informMutation)
 }
 
 export const bindTextToShapeAfterDuplication = (
-  sceneElements: ExcalidrawElement[],
+  newElements: ExcalidrawElement[],
   oldElements: ExcalidrawElement[],
   oldIdToDuplicatedId: Map<ExcalidrawElement['id'], ExcalidrawElement['id']>
 ): void => {
-  const sceneElementMap = arrayToMap(sceneElements) as Map<ExcalidrawElement['id'], ExcalidrawElement>
+  const newElementsMap = arrayToMap(newElements) as Map<ExcalidrawElement['id'], ExcalidrawElement>
   oldElements.forEach((element) => {
     const newElementId = oldIdToDuplicatedId.get(element.id) as string
     const boundTextElementId = getBoundTextElementId(element)
@@ -109,7 +110,7 @@ export const bindTextToShapeAfterDuplication = (
     if (boundTextElementId) {
       const newTextElementId = oldIdToDuplicatedId.get(boundTextElementId)
       if (newTextElementId) {
-        const newContainer = sceneElementMap.get(newElementId)
+        const newContainer = newElementsMap.get(newElementId)
         if (newContainer) {
           mutateElement(newContainer, {
             boundElements: (element.boundElements || [])
@@ -120,7 +121,7 @@ export const bindTextToShapeAfterDuplication = (
               })
           })
         }
-        const newTextElement = sceneElementMap.get(newTextElementId)
+        const newTextElement = newElementsMap.get(newTextElementId)
         if (newTextElement && isTextElement(newTextElement)) {
           mutateElement(newTextElement, {
             containerId: newContainer ? newElementId : null
@@ -191,23 +192,6 @@ export const handleBindTextResize = (
   }
 }
 
-/**
- * Calculates vertical offset for a text with alphabetic baseline.
- */
-export const getVerticalOffset = (
-  fontFamily: ExcalidrawTextElement['fontFamily'],
-  fontSize: ExcalidrawTextElement['fontSize'],
-  lineHeightPx: number
-) => {
-  const { unitsPerEm, ascender, descender } = FONT_METRICS[fontFamily] || FONT_METRICS[FONT_FAMILY.Helvetica]
-
-  const fontSizeEm = fontSize / unitsPerEm
-  const lineGap = lineHeightPx - fontSizeEm * ascender + fontSizeEm * descender
-
-  const verticalOffset = fontSizeEm * ascender + lineGap
-  return verticalOffset
-}
-
 export const computeBoundTextPosition = (
   container: ExcalidrawElement,
   boundTextElement: ExcalidrawTextElementWithContainer,
@@ -239,8 +223,6 @@ export const computeBoundTextPosition = (
   return { x, y }
 }
 
-// https://github.com/grassator/canvas-text-editor/blob/master/lib/FontMetrics.js
-
 export const measureText = (text: string, font: FontString, lineHeight: ExcalidrawTextElement['lineHeight']) => {
   text = text
     .split('\n')
@@ -251,34 +233,7 @@ export const measureText = (text: string, font: FontString, lineHeight: Excalidr
   const fontSize = parseFloat(font)
   const height = getTextHeight(text, fontSize, lineHeight)
   const width = getTextWidth(text, font)
-  const baseline = measureBaseline(text, font, lineHeight)
-  return { width, height, baseline }
-}
-
-export const measureBaseline = (
-  text: string,
-  font: FontString,
-  lineHeight: ExcalidrawTextElement['lineHeight'],
-  wrapInContainer?: boolean
-) => {
-  // FIXME: This is a temporary fix for the issue where the baseline is not
-  const fontSize = parseInt(font.split(' ')[0])
-  const fontFamily = font.split(' ')[1].replace(',', '')
-
-  if (fontFamily === 'Virgil') {
-    return Math.ceil(fontSize * 0.88)
-  }
-  if (fontFamily === 'Helvetica') {
-    return Math.ceil(fontSize * 0.97)
-  }
-  if (fontFamily === 'Cascadia') {
-    return Math.ceil(fontSize * 0.99)
-  }
-  if (fontFamily === 'Assistant') {
-    return Math.ceil(fontSize * 0.99)
-  }
-
-  return fontSize
+  return { width, height }
 }
 
 /**
@@ -301,6 +256,23 @@ export const getLineHeightInPx = (
   return fontSize * lineHeight
 }
 
+/**
+ * Calculates vertical offset for a text with alphabetic baseline.
+ */
+export const getVerticalOffset = (
+  fontFamily: ExcalidrawTextElement['fontFamily'],
+  fontSize: ExcalidrawTextElement['fontSize'],
+  lineHeightPx: number
+) => {
+  const { unitsPerEm, ascender, descender } = FONT_METRICS[fontFamily] || FONT_METRICS[FONT_FAMILY.Helvetica]
+
+  const fontSizeEm = fontSize / unitsPerEm
+  const lineGap = lineHeightPx - fontSizeEm * ascender + fontSizeEm * descender
+
+  const verticalOffset = fontSizeEm * ascender + lineGap
+  return verticalOffset
+}
+
 // FIXME rename to getApproxMinContainerHeight
 export const getApproxMinLineHeight = (
   fontSize: ExcalidrawTextElement['fontSize'],
@@ -309,8 +281,13 @@ export const getApproxMinLineHeight = (
   return getLineHeightInPx(fontSize, lineHeight) + BOUND_TEXT_PADDING * 2
 }
 
+let canvas: Canvas
+
 const getLineWidth = (text: string, font: FontString) => {
-  const canvas2dContext = createCanvas(100, 100).getContext('2d')
+  if (!canvas) {
+    canvas = createCanvas(100, 100) // document.createElement('canvas')
+  }
+  const canvas2dContext = canvas.getContext('2d')!
   canvas2dContext.font = font
   const width = canvas2dContext.measureText(text).width
 
@@ -775,18 +752,10 @@ const DEFAULT_LINE_HEIGHT = {
   // ~1.25 is the average for Virgil in WebKit and Blink.
   // Gecko (FF) uses ~1.28.
   [FONT_FAMILY.Virgil]: 1.25 as ExcalidrawTextElement['lineHeight'],
-  // ~1.15 is the average for Virgil in WebKit and Blink.
-  // Gecko if all over the place.
+  // ~1.15 is the average for Helvetica in WebKit and Blink.
   [FONT_FAMILY.Helvetica]: 1.15 as ExcalidrawTextElement['lineHeight'],
-  // ~1.2 is the average for Virgil in WebKit and Blink, and kinda Gecko too
+  // ~1.2 is the average for Cascadia in WebKit and Blink, and kinda Gecko too
   [FONT_FAMILY.Cascadia]: 1.2 as ExcalidrawTextElement['lineHeight']
-}
-
-export const getDefaultLineHeight = (fontFamily: FontFamilyValues) => {
-  if (fontFamily in DEFAULT_LINE_HEIGHT) {
-    return DEFAULT_LINE_HEIGHT[fontFamily]
-  }
-  return DEFAULT_LINE_HEIGHT[DEFAULT_FONT_FAMILY]
 }
 
 /** OS/2 sTypoAscender, https://learn.microsoft.com/en-us/typography/opentype/spec/os2#stypoascender */
@@ -832,4 +801,11 @@ export const FONT_METRICS: Record<
     ascender: 1021 as sTypoAscender,
     descender: -287 as sTypoDescender
   }
+}
+
+export const getDefaultLineHeight = (fontFamily: FontFamilyValues) => {
+  if (fontFamily in DEFAULT_LINE_HEIGHT) {
+    return DEFAULT_LINE_HEIGHT[fontFamily]
+  }
+  return DEFAULT_LINE_HEIGHT[DEFAULT_FONT_FAMILY]
 }

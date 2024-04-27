@@ -25,6 +25,8 @@ import { Mutable } from '../utility-types'
 import { arrayToMap, distance, getFontString, toBrandedType } from '../utils'
 import { RenderableElementsMap } from './types'
 
+import fs from 'fs'
+
 const SVG_EXPORT_TAG = `<!-- svg-source:excalidraw -->`
 
 const truncateText = (element: ExcalidrawTextElement, maxWidth: number) => {
@@ -139,7 +141,7 @@ const prepareElementsForRender = ({
   return nextElements
 }
 
-export const exportToCanvas = (
+export const exportToCanvas = async (
   elements: readonly NonDeletedExcalidrawElement[],
   appState: AppState,
   files: BinaryFiles,
@@ -158,7 +160,10 @@ export const exportToCanvas = (
     // const canvas = document.createElement('canvas')
     // canvas.width = width * appState.exportScale
     // canvas.height = height * appState.exportScale
-    const canvas = _createCanvas(width, height)
+    const _width = width * appState.exportScale
+    const _height = height * appState.exportScale
+    const canvas = _createCanvas(_width, _height)
+
     return { canvas, scale: appState.exportScale }
   }
 ) => {
@@ -184,13 +189,11 @@ export const exportToCanvas = (
 
   const defaultAppState = getDefaultAppState()
 
-  // const { imageCache } = await updateImageCache({
-  //   imageCache: new Map(),
-  //   fileIds: getInitializedImageElements(elementsForRender).map((element) => element.fileId),
-  //   files
-  // })
-
-  const imageCache = {}
+  const { imageCache } = await updateImageCache({
+    imageCache: new Map(),
+    fileIds: getInitializedImageElements(elementsForRender).map((element) => element.fileId),
+    files
+  })
 
   renderStaticScene({
     canvas,

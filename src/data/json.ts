@@ -36,7 +36,6 @@ export const serializeAsJSON = (
         : // will be stripped from JSON
           undefined
   }
-
   return JSON.stringify(data, null, 2)
 }
 

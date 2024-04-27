@@ -3,7 +3,7 @@ import encodePng from 'png-chunks-encode'
 import decodePng from 'png-chunks-extract'
 
 import { EXPORT_DATA_TYPES, MIME_TYPES } from '../constants'
-import { blobToArrayBuffer } from './blob'
+import { blobToArrayBuffer, bufferToArrayBuffer } from './blob'
 import { base64ToString, decode, encode, stringToBase64 } from './encode'
 
 // -----------------------------------------------------------------------------
@@ -19,8 +19,8 @@ export const getTEXtChunk = async (blob: Blob): Promise<{ keyword: string; text:
   return null
 }
 
-export const encodePngMetadata = async ({ blob, metadata }: { blob: Blob; metadata: string }) => {
-  const chunks = decodePng(new Uint8Array(await blobToArrayBuffer(blob)))
+export const encodePngMetadata = async ({ buffer, metadata }: { buffer: Buffer; metadata: string }) => {
+  const chunks = decodePng(new Uint8Array(bufferToArrayBuffer(buffer)))
 
   const metadataChunk = tEXt.encode(
     MIME_TYPES.excalidraw,
@@ -33,8 +33,8 @@ export const encodePngMetadata = async ({ blob, metadata }: { blob: Blob; metada
   )
   // insert metadata before last chunk (iEND)
   chunks.splice(-1, 0, metadataChunk)
-
-  return new Blob([encodePng(chunks)], { type: MIME_TYPES.png })
+  return Buffer.from(encodePng(chunks))
+  // return new Blob([encodePng(chunks)], { type: MIME_TYPES.png })
 }
 
 export const decodePngMetadata = async (blob: Blob) => {

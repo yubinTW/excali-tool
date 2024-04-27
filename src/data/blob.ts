@@ -390,6 +390,15 @@ export const normalizeFile = async (file: File) => {
   return file
 }
 
+export const bufferToArrayBuffer: (buffer: Buffer) => ArrayBuffer = (buffer) => {
+  var ab = new ArrayBuffer(buffer.length)
+  var view = new Uint8Array(ab)
+  for (var i = 0; i < buffer.length; ++i) {
+    view[i] = buffer[i]
+  }
+  return ab
+}
+
 export const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
   if ('arrayBuffer' in blob) {
     return blob.arrayBuffer()

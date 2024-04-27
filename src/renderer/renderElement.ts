@@ -1,49 +1,49 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { getStroke, StrokeOptions } from 'perfect-freehand'
+import {
+  ExcalidrawElement,
+  ExcalidrawTextElement,
+  NonDeletedExcalidrawElement,
+  ExcalidrawFreeDrawElement,
+  ExcalidrawImageElement,
+  ExcalidrawTextElementWithContainer,
+  ExcalidrawFrameLikeElement,
+  NonDeletedSceneElementsMap,
+  ElementsMap
+} from '../element/types'
+import {
+  isTextElement,
+  isLinearElement,
+  isFreeDrawElement,
+  isInitializedImageElement,
+  isArrowElement,
+  hasBoundTextElement,
+  isMagicFrameElement
+} from '../element/typeChecks'
+import { getElementAbsoluteCoords } from '../element/bounds'
+import type { RoughCanvas } from '../externalLibrary/roughjs/canvas'
 
+import { StaticCanvasRenderConfig, RenderableElementsMap } from '../scene/types'
+import { distance, getFontString, isRTL } from '../utils'
+import { getCornerRadius, isRightAngle } from '../math'
+import rough from '../externalLibrary/roughjs/rough'
+import { AppState, StaticCanvasAppState, Zoom, InteractiveCanvasAppState, ElementsPendingErasure } from '../types'
 import { getDefaultAppState } from '../appState'
 import { BOUND_TEXT_PADDING, ELEMENT_READY_TO_ERASE_OPACITY, FRAME_STYLE, MIME_TYPES, THEME } from '../constants'
-import { getElementAbsoluteCoords } from '../element/bounds'
-import { LinearElementEditor } from '../element/linearElementEditor'
+import { getStroke, StrokeOptions } from 'perfect-freehand'
 import {
   getBoundTextElement,
-  getBoundTextMaxHeight,
-  getBoundTextMaxWidth,
   getContainerCoords,
   getContainerElement,
   getLineHeightInPx,
+  getBoundTextMaxHeight,
+  getBoundTextMaxWidth,
   getVerticalOffset
 } from '../element/textElement'
-import {
-  hasBoundTextElement,
-  isArrowElement,
-  isFreeDrawElement,
-  isInitializedImageElement,
-  isLinearElement,
-  isMagicFrameElement,
-  isTextElement
-} from '../element/typeChecks'
-import {
-  ElementsMap,
-  ExcalidrawElement,
-  ExcalidrawFrameLikeElement,
-  ExcalidrawFreeDrawElement,
-  ExcalidrawImageElement,
-  ExcalidrawTextElement,
-  ExcalidrawTextElementWithContainer,
-  NonDeletedExcalidrawElement,
-  NonDeletedSceneElementsMap
-} from '../element/types'
-import type { RoughCanvas } from '../externalLibrary/roughjs/canvas'
-import rough from '../externalLibrary/roughjs/rough'
+import { LinearElementEditor } from '../element/linearElementEditor'
+
 import { getContainingFrame } from '../frame'
-import { getCornerRadius, isRightAngle } from '../math'
 import { ShapeCache } from '../scene/ShapeCache'
-import { RenderableElementsMap, StaticCanvasRenderConfig } from '../scene/types'
-import { AppState, ElementsPendingErasure, InteractiveCanvasAppState, StaticCanvasAppState, Zoom } from '../types'
-import { distance, getFontString, isRTL } from '../utils'
-import { Canvas, createCanvas, SKRSContext2D } from '@napi-rs/canvas'
-import globalJsdom from 'global-jsdom'
+
+import { Canvas, SKRSContext2D, createCanvas } from '@napi-rs/canvas'
 
 // using a stronger invert (100% vs our regular 93%) and saturate
 // as a temp hack to make images in dark theme look closer to original
@@ -155,14 +155,12 @@ const generateElementCanvas = (
   appState: StaticCanvasAppState
 ): ExcalidrawElementWithCanvas => {
   const { width, height, scale } = cappedElementCanvasSize(element, elementsMap, zoom)
-
-  // const canvas = document.createElement('canvas')
   const canvas = createCanvas(width, height)
-  const context = canvas.getContext('2d')
+  const context = canvas.getContext('2d')!
   const padding = getCanvasPadding(element)
 
-  // canvas.width = width
-  // canvas.height = height
+  canvas.width = width
+  canvas.height = height
 
   let canvasOffsetX = 0
   let canvasOffsetY = 0
@@ -206,15 +204,20 @@ const generateElementCanvas = (
 
 export const DEFAULT_LINK_SIZE = 14
 
-const IMAGE_PLACEHOLDER_IMG = document.createElement('img')
-IMAGE_PLACEHOLDER_IMG.src = `data:${MIME_TYPES.svg},${encodeURIComponent(
-  `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="image" class="svg-inline--fa fa-image fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#888" d="M464 448H48c-26.51 0-48-21.49-48-48V112c0-26.51 21.49-48 48-48h416c26.51 0 48 21.49 48 48v288c0 26.51-21.49 48-48 48zM112 120c-30.928 0-56 25.072-56 56s25.072 56 56 56 56-25.072 56-56-25.072-56-56-56zM64 384h384V272l-87.515-87.515c-4.686-4.686-12.284-4.686-16.971 0L208 320l-55.515-55.515c-4.686-4.686-12.284-4.686-16.971 0L64 336v48z"></path></svg>`
-)}`
+const IMAGE_PLACEHOLDER_IMG = createCanvas(100, 100)
+IMAGE_PLACEHOLDER_IMG.getContext('2d').strokeText('place', 0, 0)
+// const IMAGE_PLACEHOLDER_IMG =  document.createElement('img')
+// IMAGE_PLACEHOLDER_IMG.src = `data:${MIME_TYPES.svg},${encodeURIComponent(
+//   `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="image" class="svg-inline--fa fa-image fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#888" d="M464 448H48c-26.51 0-48-21.49-48-48V112c0-26.51 21.49-48 48-48h416c26.51 0 48 21.49 48 48v288c0 26.51-21.49 48-48 48zM112 120c-30.928 0-56 25.072-56 56s25.072 56 56 56 56-25.072 56-56-25.072-56-56-56zM64 384h384V272l-87.515-87.515c-4.686-4.686-12.284-4.686-16.971 0L208 320l-55.515-55.515c-4.686-4.686-12.284-4.686-16.971 0L64 336v48z"></path></svg>`
+// )}`
 
-const IMAGE_ERROR_PLACEHOLDER_IMG = document.createElement('img')
-IMAGE_ERROR_PLACEHOLDER_IMG.src = `data:${MIME_TYPES.svg},${encodeURIComponent(
-  `<svg viewBox="0 0 668 668" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2"><path d="M464 448H48c-26.51 0-48-21.49-48-48V112c0-26.51 21.49-48 48-48h416c26.51 0 48 21.49 48 48v288c0 26.51-21.49 48-48 48ZM112 120c-30.928 0-56 25.072-56 56s25.072 56 56 56 56-25.072 56-56-25.072-56-56-56ZM64 384h384V272l-87.515-87.515c-4.686-4.686-12.284-4.686-16.971 0L208 320l-55.515-55.515c-4.686-4.686-12.284-4.686-16.971 0L64 336v48Z" style="fill:#888;fill-rule:nonzero" transform="matrix(.81709 0 0 .81709 124.825 145.825)"/><path d="M256 8C119.034 8 8 119.033 8 256c0 136.967 111.034 248 248 248s248-111.034 248-248S392.967 8 256 8Zm130.108 117.892c65.448 65.448 70 165.481 20.677 235.637L150.47 105.216c70.204-49.356 170.226-44.735 235.638 20.676ZM125.892 386.108c-65.448-65.448-70-165.481-20.677-235.637L361.53 406.784c-70.203 49.356-170.226 44.736-235.638-20.676Z" style="fill:#888;fill-rule:nonzero" transform="matrix(.30366 0 0 .30366 506.822 60.065)"/></svg>`
-)}`
+const IMAGE_ERROR_PLACEHOLDER_IMG = createCanvas(100, 100)
+IMAGE_ERROR_PLACEHOLDER_IMG.getContext('2d').strokeText('error', 0, 0)
+
+// const IMAGE_ERROR_PLACEHOLDER_IMG = document.createElement('img')
+// IMAGE_ERROR_PLACEHOLDER_IMG.src = `data:${MIME_TYPES.svg},${encodeURIComponent(
+//   `<svg viewBox="0 0 668 668" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2"><path d="M464 448H48c-26.51 0-48-21.49-48-48V112c0-26.51 21.49-48 48-48h416c26.51 0 48 21.49 48 48v288c0 26.51-21.49 48-48 48ZM112 120c-30.928 0-56 25.072-56 56s25.072 56 56 56 56-25.072 56-56-25.072-56-56-56ZM64 384h384V272l-87.515-87.515c-4.686-4.686-12.284-4.686-16.971 0L208 320l-55.515-55.515c-4.686-4.686-12.284-4.686-16.971 0L64 336v48Z" style="fill:#888;fill-rule:nonzero" transform="matrix(.81709 0 0 .81709 124.825 145.825)"/><path d="M256 8C119.034 8 8 119.033 8 256c0 136.967 111.034 248 248 248s248-111.034 248-248S392.967 8 256 8Zm130.108 117.892c65.448 65.448 70 165.481 20.677 235.637L150.47 105.216c70.204-49.356 170.226-44.735 235.638 20.676ZM125.892 386.108c-65.448-65.448-70-165.481-20.677-235.637L361.53 406.784c-70.203 49.356-170.226 44.736-235.638-20.676Z" style="fill:#888;fill-rule:nonzero" transform="matrix(.30366 0 0 .30366 506.822 60.065)"/></svg>`
+// )}`
 
 const drawImagePlaceholder = (
   element: ExcalidrawImageElement,
@@ -229,8 +232,7 @@ const drawImagePlaceholder = (
   const size = Math.min(imageMinWidthOrHeight, Math.min(imageMinWidthOrHeight * 0.4, 100))
 
   context.drawImage(
-    // element.status === 'error' ? IMAGE_ERROR_PLACEHOLDER_IMG : IMAGE_PLACEHOLDER_IMG,
-    createCanvas(100, 100), // empty canvas
+    element.status === 'error' ? IMAGE_ERROR_PLACEHOLDER_IMG : IMAGE_PLACEHOLDER_IMG,
     element.width / 2 - size / 2,
     element.height / 2 - size / 2,
     size,
@@ -306,13 +308,8 @@ const drawElementOnCanvas = (
     }
     default: {
       if (isTextElement(element)) {
-        const rtl = isRTL(element.text)
-        // const shouldTemporarilyAttach = rtl && !context.canvas.isConnected
-        // if (shouldTemporarilyAttach) {
-        //   // to correctly render RTL text mixed with LTR, we have to append it
-        //   // to the DOM
-        //   document.body.appendChild(context.canvas)
-        // }
+        // const rtl = isRTL(element.text)
+
         // context.canvas.setAttribute('dir', rtl ? 'rtl' : 'ltr')
         context.save()
         context.font = getFontString(element)
@@ -404,20 +401,18 @@ const drawElementFromCanvas = (
   const boundTextElement = getBoundTextElement(element, allElementsMap)
 
   if (isArrowElement(element) && boundTextElement) {
-    // const tempCanvas = document.createElement('canvas')
-    // const tempCanvasContext = tempCanvas.getContext('2d')!
-
     // Take max dimensions of arrow canvas so that when canvas is rotated
     // the arrow doesn't get clipped
     const maxDim = Math.max(distance(x1, x2), distance(y1, y2))
-    // tempCanvas.width = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
-    // tempCanvas.height = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+
     const width = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
     const height = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
 
-    const tempCanvas = createCanvas(width, height)
-    const tempCanvasContext = tempCanvas.getContext('2d')
+    const tempCanvas = createCanvas(width, height) // document.createElement('canvas')
+    const tempCanvasContext = tempCanvas.getContext('2d')!
 
+    tempCanvas.width = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
+    tempCanvas.height = maxDim * window.devicePixelRatio * zoom + padding * elementWithCanvas.scale * 10
     const offsetX = (tempCanvas.width - elementWithCanvas.canvas!.width) / 2
     const offsetY = (tempCanvas.height - elementWithCanvas.canvas!.height) / 2
 
@@ -630,22 +625,19 @@ export const renderElement = (
         const boundTextElement = getBoundTextElement(element, elementsMap)
 
         if (isArrowElement(element) && boundTextElement) {
-          // const tempCanvas = document.createElement('canvas')
-          // const tempCanvasContext = tempCanvas.getContext('2d')!
-
           // Take max dimensions of arrow canvas so that when canvas is rotated
           // the arrow doesn't get clipped
           const maxDim = Math.max(distance(x1, x2), distance(y1, y2))
           const padding = getCanvasPadding(element)
 
-          // tempCanvas.width = maxDim * appState.exportScale + padding * 10 * appState.exportScale
-          // tempCanvas.height = maxDim * appState.exportScale + padding * 10 * appState.exportScale
-
           const width = maxDim * appState.exportScale + padding * 10 * appState.exportScale
           const height = maxDim * appState.exportScale + padding * 10 * appState.exportScale
-
           const tempCanvas = createCanvas(width, height)
-          const tempCanvasContext = tempCanvas.getContext('2d')
+
+          const tempCanvasContext = tempCanvas.getContext('2d')!
+
+          tempCanvas.width = maxDim * appState.exportScale + padding * 10 * appState.exportScale
+          tempCanvas.height = maxDim * appState.exportScale + padding * 10 * appState.exportScale
 
           tempCanvasContext.translate(tempCanvas.width / 2, tempCanvas.height / 2)
           tempCanvasContext.scale(appState.exportScale, appState.exportScale)
@@ -734,6 +726,7 @@ export const renderElement = (
       break
     }
     default: {
+      // @ts-ignore
       throw new Error(`Unimplemented type ${element.type}`)
     }
   }

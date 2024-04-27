@@ -52,9 +52,8 @@ export const exportToCanvas = ({
 
         // if content is less then maxWidthOrHeight, fallback on supplied scale
         const scale = maxWidthOrHeight < max ? maxWidthOrHeight / max : appState?.exportScale ?? 1
-
-        canvas.width = 100 // width * scale
-        canvas.height = 100 // height * scale
+        canvas.width = width * scale
+        canvas.height = height * scale
 
         return {
           canvas,
@@ -63,7 +62,6 @@ export const exportToCanvas = ({
       }
 
       const ret = getDimensions?.(width, height) || { width, height }
-
       canvas.width = ret.width
       canvas.height = ret.height
 
@@ -101,11 +99,19 @@ export const exportToBuffer = async (
     }
   }
 
-  const canvas = exportToCanvas(opts)
+  const canvas = await exportToCanvas(opts)
 
   quality = quality ? quality : /image\/jpe?g/.test(mimeType) ? 0.92 : 0.8
 
-  return canvas.toBuffer('image/png')
+  const buffer = mimeType === 'image/png' ? canvas.toBuffer('image/png') : canvas.toBuffer('image/jpeg', quality)
+
+  // if (mimeType === MIME_TYPES.png && opts.appState?.exportEmbedScene) {
+  //   return encodePngMetadata({
+  //     buffer: buffer,
+  //     metadata: serializeAsJSON(opts.elements, opts.appState, opts.files || {}, 'local')
+  //   })
+  // }
+  return buffer
   // const buffer = canvas.toBuffer('image/jpeg', quality)
   // resolve(buffer)
   // canvas.toBuffer(

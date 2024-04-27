@@ -108,7 +108,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     seed: rest.seed ?? randomInteger(),
     version: rest.version || 1,
     versionNonce: rest.versionNonce ?? 0,
-    isDeleted: false,
+    isDeleted: false as false,
     boundElements,
     updated: getUpdatedTimestamp(),
     link,
@@ -216,7 +216,6 @@ export const newTextElement = (
       y: opts.y - offsets.y,
       width: metrics.width,
       height: metrics.height,
-      baseline: metrics.baseline,
       containerId: opts.containerId || null,
       originalText: text,
       lineHeight

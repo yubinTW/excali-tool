@@ -1,5 +1,5 @@
 import { Canvas, SKRSContext2D } from '@napi-rs/canvas'
-import { Config, Drawable, OpSet, Options, ResolvedOptions } from './core'
+import { Config, Options, ResolvedOptions, Drawable, OpSet } from './core'
 import { RoughGenerator } from './generator'
 import { Point } from './geometry'
 

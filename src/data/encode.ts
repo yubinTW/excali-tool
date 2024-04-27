@@ -6,7 +6,7 @@ import { decryptData, encryptData } from './encryption'
 // byte (binary) strings
 // -----------------------------------------------------------------------------
 
-// fast, Buffer-compatible implem
+// fast, Buffer-compatible implementation of btoa
 export const toByteString = (data: string | Uint8Array | ArrayBuffer): Promise<string> => {
   return new Promise((resolve, reject) => {
     const blob =
@@ -20,7 +20,12 @@ export const toByteString = (data: string | Uint8Array | ArrayBuffer): Promise<s
       }
       resolve(event.target.result)
     }
-    reader.readAsBinaryString(blob)
+    /** Yubin: fix?
+     * readAsBinaryString is deprecated and will be removed in the future.
+     * ref https://developer.mozilla.org/zh-CN/docs/Web/API/FileReader/readAsBinaryString
+     */
+    // reader.readAsBinaryString(blob)
+    reader.readAsArrayBuffer(blob)
   })
 }
 
