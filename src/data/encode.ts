@@ -7,25 +7,23 @@ import { decryptData, encryptData } from './encryption'
 // -----------------------------------------------------------------------------
 
 // fast, Buffer-compatible implementation of btoa
+/**
+ * Yubin: use Buffer.from() to convert ArrayBuffer to Buffer
+ * without using FileReader
+ */
 export const toByteString = (data: string | Uint8Array | ArrayBuffer): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const blob =
       typeof data === 'string'
         ? new Blob([new TextEncoder().encode(data)])
         : new Blob([data instanceof Uint8Array ? data : new Uint8Array(data)])
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      if (!event.target || typeof event.target.result !== 'string') {
-        return reject(new Error("couldn't convert to byte string"))
-      }
-      resolve(event.target.result)
+    try {
+      const arrayBuffer = await blob.arrayBuffer()
+      const b64 = Buffer.from(arrayBuffer).toString('base64')
+      resolve(b64)
+    } catch (error) {
+      reject(`Failed to toByteString: , ${error}`)
     }
-    /** Yubin: fix?
-     * readAsBinaryString is deprecated and will be removed in the future.
-     * ref https://developer.mozilla.org/zh-CN/docs/Web/API/FileReader/readAsBinaryString
-     */
-    // reader.readAsBinaryString(blob)
-    reader.readAsArrayBuffer(blob)
   })
 }
 
